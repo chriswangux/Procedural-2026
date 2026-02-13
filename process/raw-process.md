@@ -565,3 +565,48 @@ git tag v2.1 -m "Version 2.1: Accessibility fixes, exploration modes polish, sty
 | Git tags | — | v1.0, v2.0 | v1.0, v2.0, v2.1 |
 | Total agents spawned | 5 | 11 | 15 (11 + 4 a11y) |
 | Accessibility | Unchecked | Unchecked | WCAG AA (70 fixes) |
+
+---
+
+## Phase 10: Rebuilding the "Intuitions" Section as a Narrative Experience
+
+### Context
+
+The user reviewed the original deck's "Intuitions" section (pages 131+) and realized the current `animspectrum.js` only showed 5 stick figures side-by-side — it didn't tell the story. The deck's intellectual journey from pure procedural IK through supervised learning (PFNN), RL (DeepLoco), RL+Imitation (DeepMimic), to RL+IL+Procedural (Overgrowth) was a narrative about convergent discovery.
+
+**User's key insight:** This CG animation progression parallels the broader AI field's evolution:
+- Procedural IK ↔ Expert Systems (hand-crafted rules)
+- PFNN (2017) ↔ ImageNet/AlexNet (2012) (supervised learning from data)
+- DeepLoco (2017) ↔ AlphaGo (2016) (RL from self-interaction)
+- DeepMimic (2018) ↔ RLHF/ChatGPT (2022) (RL + human-aligned constraints)
+- RL+IL+Procedural ↔ Constitutional AI, tool use (hybrid + human control)
+
+### Research Phase
+
+**User prompt:** "Can you go through the original deck and think hard on how you can help tell the story in an engaging way? My intuition there was around the progression... I find it fascinating that there's almost a parallel to what happened with the AI field itself... I'm not a researcher, so challenge my thoughts and improve them."
+
+An Explore agent was launched to:
+1. Fact-check all dates and attributions
+2. Validate the RLHF↔DeepMimic parallel
+3. Identify corrections and additions
+
+**Key findings:**
+- Dates were largely correct: PFNN (2017), DeepLoco (2017), DeepMimic (2018)
+- "Emergence of Locomotion Behaviours" (DeepMind) was 2017, same year as DeepLoco
+- The RLHF↔DeepMimic parallel is conceptually sound: both use RL + data-driven constraints from prior knowledge
+- CG arguably discovered the "RL + human constraints" breakthrough 4 years before AI (2018 vs 2022)
+- Missing milestone suggested: AlphaStar (2019), which used supervised + multi-agent RL
+
+### Build Phase
+
+**Team created:** `intuitions-build` with 2 agents:
+- `narrative-builder`: Complete rewrite of animspectrum.js as a 6-step narrative experience with dual timeline
+- `docs-writer`: Process documentation updates
+
+**New animspectrum.js design:**
+- 6-step navigable narrative (click step numbers or auto-advance every 8s)
+- Each step: animated character demo (canvas) + narrative text + trade-offs + insight callout
+- Dual timeline strip showing CG milestones on top, AI milestones on bottom, with connecting lines
+- Step 3 shows the "failure point" (PFNN + physics = character collapses)
+- Step 5 highlights the breakthrough parallel between DeepMimic and RLHF
+- Step 6 includes interactive "Art Direction" slider for artist control

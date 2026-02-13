@@ -199,6 +199,32 @@ This mirrors the deck's "Human in the Loop" theme perfectly: the AI built the sy
 
 ---
 
+## Phase 4: The Intellectual Heart — Rebuilding the Intuitions Section
+
+The most intellectually interesting part of the deck wasn't the demos — it was the story on pages 131+. The user's "Intuitions" section traced how character animation evolved through the same paradigm shifts as the broader AI field.
+
+### The Thesis
+
+Both Computer Graphics and AI independently discovered the same fundamental insight: **the breakthrough isn't pure supervised learning or pure RL — it's combining RL with human-aligned constraints.**
+
+In CG, this was DeepMimic (2018): RL + reference motion capture data as reward. In AI, this was RLHF/ChatGPT (2022): RL + human preference data as reward. The CG field arguably discovered this formula 4 years earlier.
+
+### The Challenge
+
+The user explicitly asked: "I'm not a researcher, so challenge my thoughts and improve them." This led to a research phase that:
+- Confirmed the parallel is fundamentally sound
+- Corrected minor timeline details (DeepMind's locomotion paper was 2017, not later)
+- Suggested adding AlphaStar and the "emergence" parallel (emergent locomotion ↔ emergent LLM capabilities)
+- Strengthened the thesis by noting the 2017 simultaneity — both fields hit the "RL learns from self-play" milestone in the same year
+
+### The Rebuild
+
+The existing `animspectrum.js` (5 stick figures in a row) was replaced with a rich 6-step narrative that tells the story with animated demos, trade-off analysis, and a dual timeline showing CG and AI milestones side-by-side. Step 5 is the dramatic highlight — where both timelines converge on the same insight.
+
+This section became the intellectual centerpiece of the entire experience. It's no longer just a demo — it's an argument.
+
+---
+
 ## Updated Statistics
 
 | Metric | v1.0 | v2.0 | v2.1 |
