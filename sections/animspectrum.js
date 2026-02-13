@@ -875,13 +875,8 @@ const AnimSpectrumSection = (() => {
         height: 140px;
         padding: 0 48px;
         position: relative;
-        border-top: 1px solid rgba(255, 255, 255, 0.05);
-        margin-top: 32px;
-        transition: height 0.5s cubic-bezier(0.4, 0, 0.2, 1), padding-bottom 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-
-      .as-timeline.has-callout {
-        height: 200px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        margin-bottom: 24px;
       }
 
       .as-timeline-track {
@@ -1002,37 +997,7 @@ const AnimSpectrumSection = (() => {
         border-left-color: rgba(255, 255, 255, 0.35);
       }
 
-      /* Callout below both tracks */
-      .as-timeline-callout {
-        position: absolute;
-        top: 130px;
-        left: 50%;
-        transform: translateX(-50%) translateY(6px);
-        text-align: center;
-        max-width: 480px;
-        padding: 10px 20px;
-        background: rgba(255, 110, 180, 0.06);
-        border: 1px solid rgba(255, 110, 180, 0.15);
-        border-radius: 8px;
-        font-size: 12px;
-        line-height: 1.55;
-        color: rgba(255, 255, 255, 0.65);
-        opacity: 0;
-        transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-        pointer-events: none;
-        z-index: 5;
-      }
-
-      .as-timeline-callout.visible {
-        opacity: 1;
-        transform: translateX(-50%) translateY(0);
-      }
-
-      .as-timeline-callout em {
-        color: rgba(255, 110, 180, 0.85);
-        font-style: normal;
-        font-weight: 600;
-      }
+      /* Callout removed */
 
       /* ---- Responsive ---- */
       @media (max-width: 860px) {
@@ -1127,6 +1092,13 @@ const AnimSpectrumSection = (() => {
     }
     domWrapper.appendChild(stepNav);
 
+    // Timeline strip — placed right after stepper so variable content height doesn't push it around
+    timelineStrip = document.createElement('div');
+    timelineStrip.className = 'as-timeline';
+    buildTimeline();
+    domWrapper.appendChild(timelineStrip);
+
+
     // ---- Content Area (two columns) ----
     contentArea = document.createElement('div');
     contentArea.className = 'as-content';
@@ -1215,12 +1187,6 @@ const AnimSpectrumSection = (() => {
     contentArea.appendChild(rightCol);
     domWrapper.appendChild(contentArea);
 
-    // ---- Timeline Strip ----
-    timelineStrip = document.createElement('div');
-    timelineStrip.className = 'as-timeline';
-    buildTimeline();
-    domWrapper.appendChild(timelineStrip);
-
     container.appendChild(domWrapper);
   }
 
@@ -1296,11 +1262,7 @@ const AnimSpectrumSection = (() => {
     }
 
     // Callout (visible at step 5)
-    const callout = document.createElement('div');
-    callout.className = 'as-timeline-callout';
-    callout.id = 'as-timeline-callout';
-    callout.innerHTML = 'Both fields discovered the same formula: <em>RL + human-aligned constraints</em>. Reference motion in CG (2018). Human preferences in AI (2022).';
-    timelineStrip.appendChild(callout);
+    // Callout removed — the insight is conveyed in the step narrative text instead
   }
 
   // ================================================================
@@ -1448,15 +1410,7 @@ const AnimSpectrumSection = (() => {
       el.classList.toggle('active', cgStep === currentStep);
     });
 
-    // Callout visibility at step 5 (index 4) — expand timeline to fit
-    const callout = document.getElementById('as-timeline-callout');
-    const showCallout = currentStep === 4;
-    if (callout) {
-      callout.classList.toggle('visible', showCallout);
-    }
-    if (timelineStrip) {
-      timelineStrip.classList.toggle('has-callout', showCallout);
-    }
+    // Callout removed — insight conveyed in step narrative
   }
 
   // ================================================================
