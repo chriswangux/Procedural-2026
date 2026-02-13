@@ -1272,15 +1272,22 @@ const AnimSpectrumSection = (() => {
   // ================================================================
   function updateTimelinePositions() {
     if (!timelineStrip) return;
-    const rect = timelineStrip.getBoundingClientRect();
+    const tlRect = timelineStrip.getBoundingClientRect();
     const trackLeft = 80;
-    const trackRight = rect.width - 48;
+    const trackRight = tlRect.width - 48;
     const trackWidth = trackRight - trackLeft;
 
-    // Position step nav dots to align with milestones
-    for (let i = 0; i < stepDots.length && i < CG_MILESTONES.length; i++) {
-      const xPos = trackLeft + CG_MILESTONES[i].x * trackWidth;
-      stepDots[i].style.left = xPos + 'px';
+    // Position step nav dots — use timeline's absolute screen position
+    // to compute where each dot should be, then convert to stepNav-relative coords
+    if (stepNav && stepDots.length > 0) {
+      const navRect = stepNav.getBoundingClientRect();
+      for (let i = 0; i < stepDots.length && i < CG_MILESTONES.length; i++) {
+        // Milestone's absolute screen x
+        const absX = tlRect.left + trackLeft + CG_MILESTONES[i].x * trackWidth;
+        // Convert to stepNav-relative
+        const relX = absX - navRect.left;
+        stepDots[i].style.left = relX + 'px';
+      }
     }
 
     // Position milestones
