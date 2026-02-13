@@ -512,16 +512,17 @@ const AnimSpectrumSection = (() => {
     style.id = styleId;
     style.textContent = `
       .as-wrapper {
-        position: absolute;
-        inset: 0;
+        position: relative;
+        width: 100%;
+        min-height: 100vh;
         background: #06080f;
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         color: #fff;
-        overflow-y: auto;
-        overflow-x: hidden;
+        overflow: hidden;
         display: flex;
         flex-direction: column;
         -webkit-font-smoothing: antialiased;
+        padding-bottom: 40px;
       }
 
       .as-header {
@@ -1643,7 +1644,7 @@ const AnimSpectrumSection = (() => {
       container.style.overflow = 'hidden';
       container.style.background = '#06080f';
       container.style.width = '100%';
-      container.style.height = '100%';
+      container.style.minHeight = '100vh';
 
       buildDOM();
 
