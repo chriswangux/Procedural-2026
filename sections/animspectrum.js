@@ -592,22 +592,22 @@ const AnimSpectrumSection = (() => {
         position: relative;
         z-index: 1;
         transition: all 0.3s ease;
-        border: 2px solid rgba(255, 255, 255, 0.15);
+        border: 2px solid rgba(255, 255, 255, 0.3);
         background: transparent;
-        color: rgba(255, 255, 255, 0.4);
+        color: rgba(255, 255, 255, 0.6);
         margin: 0 16px;
         user-select: none;
         -webkit-user-select: none;
       }
 
       .as-step-dot:hover {
-        border-color: rgba(255, 255, 255, 0.35);
+        border-color: rgba(255, 255, 255, 0.5);
         color: rgba(255, 255, 255, 0.7);
       }
 
       .as-step-dot.completed {
         background: rgba(255, 255, 255, 0.12);
-        border-color: rgba(255, 255, 255, 0.25);
+        border-color: rgba(255, 255, 255, 0.4);
         color: rgba(255, 255, 255, 0.7);
       }
 
@@ -623,8 +623,7 @@ const AnimSpectrumSection = (() => {
         display: flex;
         gap: 32px;
         padding: 0 48px;
-        flex: 1;
-        min-height: 0;
+        min-height: 400px;
         align-items: flex-start;
       }
 
@@ -661,7 +660,7 @@ const AnimSpectrumSection = (() => {
         font-family: 'JetBrains Mono', 'SF Mono', monospace;
         font-size: 10px;
         font-weight: 500;
-        color: rgba(255, 255, 255, 0.35);
+        color: rgba(255, 255, 255, 0.55);
         letter-spacing: 0.08em;
         text-transform: uppercase;
         pointer-events: none;
@@ -746,7 +745,7 @@ const AnimSpectrumSection = (() => {
         justify-content: space-between;
         margin-top: 6px;
         font-size: 10px;
-        color: rgba(255, 255, 255, 0.4);
+        color: rgba(255, 255, 255, 0.55);
       }
 
       /* ---- Right Column: Narrative ---- */
@@ -801,7 +800,7 @@ const AnimSpectrumSection = (() => {
       .as-step-subtext {
         font-family: 'JetBrains Mono', 'SF Mono', monospace;
         font-size: 12px;
-        color: rgba(255, 255, 255, 0.4);
+        color: rgba(255, 255, 255, 0.6);
         margin: 0 0 16px;
         padding: 10px 14px;
         background: rgba(255, 255, 255, 0.03);
@@ -875,7 +874,7 @@ const AnimSpectrumSection = (() => {
         padding: 0 48px;
         position: relative;
         border-top: 1px solid rgba(255, 255, 255, 0.05);
-        margin-top: auto;
+        margin-top: 32px;
       }
 
       .as-timeline-track {
@@ -961,35 +960,35 @@ const AnimSpectrumSection = (() => {
       .as-milestone-label {
         font-size: 10px;
         font-weight: 500;
-        color: rgba(255, 255, 255, 0.35);
+        color: rgba(255, 255, 255, 0.55);
         white-space: nowrap;
         transition: color 0.3s ease;
       }
 
       .as-milestone.active .as-milestone-label {
-        color: rgba(255, 255, 255, 0.8);
+        color: rgba(255, 255, 255, 0.9);
       }
 
       .as-milestone-year {
         font-size: 9px;
-        color: rgba(255, 255, 255, 0.2);
+        color: rgba(255, 255, 255, 0.45);
         font-family: 'JetBrains Mono', 'SF Mono', monospace;
       }
 
       .as-milestone.dimmed {
-        opacity: 0.35;
+        opacity: 0.5;
       }
 
       /* Dashed connection lines between tracks */
       .as-timeline-connection {
         position: absolute;
         width: 1px;
-        border-left: 1px dashed rgba(255, 255, 255, 0.08);
+        border-left: 1px dashed rgba(255, 255, 255, 0.12);
         transition: border-color 0.3s ease, opacity 0.3s ease;
       }
 
       .as-timeline-connection.active {
-        border-left-color: rgba(255, 255, 255, 0.2);
+        border-left-color: rgba(255, 255, 255, 0.35);
       }
 
       /* Callout between tracks */

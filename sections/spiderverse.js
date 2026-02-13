@@ -508,7 +508,7 @@ const SpiderVerseSection = (() => {
       transform: translate(-50%, -50%);
       font-family: 'JetBrains Mono', monospace;
       font-size: 13px;
-      color: rgba(26,20,16,0.25);
+      color: rgba(26,20,16,0.45);
       pointer-events: none;
       transition: opacity 0.4s;
     `;
