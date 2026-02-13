@@ -832,8 +832,8 @@ const StyleTransferSection = (() => {
       const rect = cell.wrapper.getBoundingClientRect();
       cell.canvas.width = rect.width * dpr;
       cell.canvas.height = rect.height * dpr;
-      cell.canvas.style.width = rect.width + 'px';
-      cell.canvas.style.height = rect.height + 'px';
+      // CSS width/height stays at 100% — don't set explicit px values
+      // or the canvas will grow slightly on each call
       cell.ctx = cell.canvas.getContext('2d');
     }
   }
