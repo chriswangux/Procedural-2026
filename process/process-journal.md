@@ -168,3 +168,46 @@ This is a design tradeoff. More sections means more to explore, but also more to
 | Source material | 644 lines of extracted text | Same |
 
 From a PDF export to a live 21-section interactive web experience with 14,600 lines of code, built by 11 AI agents coordinated in two team phases. The entire process — from first slide extraction to final deployment — was a demonstration of the very ideas the deck set out to explore.
+
+---
+
+## Phase 3: Polish & Accessibility (v2.0 → v2.1)
+
+After the exhaustive build, a refinement phase addressed usability and visual polish through iterative user feedback.
+
+### The Accessibility Pass
+
+The user noticed that many text labels were hard to read against the dark background. A systematic audit revealed widespread contrast issues — text alpha values of 0.15–0.35 produced contrast ratios well below WCAG AA minimums.
+
+**Approach:** Spawned 4 parallel accessibility agents, each responsible for a group of files. They audited every `fillStyle`/`color` value used for text and bumped low-contrast values to meet WCAG AA (4.5:1 for normal text, 3:1 for large text). 70 fixes across all 18 files, while carefully preserving decorative elements (glows, backgrounds, particle effects).
+
+**Key lesson:** Dark themes are beautiful but demand vigilance on text contrast. Alpha values that "look fine" on a bright monitor often fail on dimmer screens or in ambient light.
+
+### Interaction Refinements
+
+Several rounds of focused feedback improved specific interactions:
+
+- **Exploration modes**: Made taller (260px → 480px) and clickable — users can now pin a mode or let it auto-cycle. Replaced rigid bounding boxes with a playful animated wavy underline.
+- **Style transfer**: Fixed a bug where cards grew ~1px per click due to subpixel rounding in canvas sizing.
+- **Multi-threaded tree**: Expanded from 50% to 88% of canvas width with a third generation of branches, matching the visual scale of the other exploration modes.
+
+### Reflections on the Polish Phase
+
+This phase was fundamentally different from the build phases. Instead of parallel construction, it was iterative refinement driven by visual feedback. The user spotted issues that no amount of automated testing would catch — aesthetic choices (bounding box vs underline), proportional feel (tree too narrow), and real-world readability (text too dim).
+
+This mirrors the deck's "Human in the Loop" theme perfectly: the AI built the system, but the human directed the refinement through taste and judgment.
+
+---
+
+## Updated Statistics
+
+| Metric | v1.0 | v2.0 | v2.1 |
+|--------|------|------|------|
+| Sections | 9 | 21 | 21 |
+| Interactive demos | 5 | 17 | 17 |
+| Lines of code | ~5,500 | ~14,600 | ~14,850 |
+| Builder agents | 5 | 6 | — |
+| Polish agents | — | — | 4 (accessibility) |
+| Total agents | 6 | 11 | 15 |
+| Accessibility | Unchecked | Unchecked | WCAG AA |
+| Git tags | — | v1.0, v2.0 | v1.0, v2.0, v2.1 |

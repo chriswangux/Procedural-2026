@@ -469,3 +469,99 @@ v1.0 used a single team (`procedural-web`) with 5 parallel builder agents, each 
 v2.0 used a second team (`procedural-v2`) with 6 parallel builder agents, each responsible for 1-3 sections grouped by theme. The lead agent handled expanded planning, theme bridge design, and full reassembly of index.html.
 
 Both builds followed the same pattern: plan centrally, build in parallel, assemble at the end. Each builder agent received the full deck content and their specific section brief, worked independently, and produced a self-contained JS module that exports `init(container)` and `destroy()` functions.
+
+---
+
+## Phase 9: Polish & Accessibility (v2.0 → v2.1)
+
+After v2.0 was published, a series of refinements were made based on user feedback:
+
+### 9a. Exploration Modes — Height & Interactivity
+
+**User prompt:** "Make the Exploration modes section bigger (taller in height), and make the three approach selectable. (But keep the auto cycling through three sections too)."
+
+**Changes:**
+- Increased modes canvas height from 260px to 480px
+- Added clickable mode selector buttons (Linear, Multi-threaded, Agentive)
+- Clicking a mode pins it; clicking the same mode again returns to auto-cycle
+- Auto-cycle progress bar shows timing when in auto mode
+- Active button gets highlighted background and indicator dot
+- Hover cursor changes over buttons
+
+**Commit:** `Make exploration modes section taller and clickable` (+109/-26 lines)
+
+### 9b. WCAG AA Accessibility Audit
+
+**User prompt:** "Some of the colored text or gray text are hard to read against the background. While I like the dark theme and overall style, can you also make sure the text are legible and meeting accessibility standards?"
+
+**Approach:** Systematic audit of all text colors across all 18 files. Against the dark background (#06080f), many text elements used alpha values of 0.15–0.35, resulting in contrast ratios of ~1.5:1 to ~3.5:1 — well below WCAG AA minimums (4.5:1 for normal text, 3:1 for large text).
+
+**Team created:** `a11y-fix` with 4 parallel agents:
+- Agent 1 (`html-fixer`): index.html — 3 fixes
+- Agent 2 (`og-sections-fixer`): hero.js, planets.js, spiderweb.js, semantic.js — 18 fixes
+- Agent 3 (`theme23-fixer`): exploration.js, layoutgen.js, variablefont.js, lofihifi.js — 19 fixes
+- Agent 4 (`remaining-fixer`): spiderverse.js, firewatch.js, styletransfer.js, semanticlighting.js, semanticanimation.js, emergent.js, parametricarch.js, colorbox.js, animspectrum.js — 30 fixes
+
+**Fix rules applied:**
+- Readable text: minimum alpha 0.55 for white text, 0.65 for colored text
+- Secondary/hint text: minimum alpha 0.5
+- Large headings: minimum alpha 0.45
+- Decorative elements (glows, backgrounds, borders, particles): NOT changed
+
+**Commit:** `Fix text contrast across all 18 files for WCAG AA accessibility` — 70 contrast fixes, 18 files changed
+
+### 9c. Exploration Modes — Underline Style
+
+**User prompt:** "The third box has text overflowing out of the box. Fix that. I don't like the bounding box, maybe make it a playful underline for highlight selection."
+
+**Changes:**
+- Removed rectangular button backgrounds and borders entirely
+- Added animated wavy underline (sine wave) for the active mode
+- Hit areas remain generous for clicking, just invisible
+- Pinned mode shows a small dot indicator
+- Fixed "Agentive Exploration" text overflow by removing width constraints
+
+**Commit:** `Replace bounding boxes with playful wavy underline in exploration modes` (+42/-40 lines)
+
+### 9d. Style Transfer — Card Growth Bug
+
+**User prompt:** "Every time I click on New Composition, the cards are getting slightly bigger."
+
+**Root cause:** `sizeCanvases()` was overriding the canvas's CSS `width: 100%` with explicit pixel values from `getBoundingClientRect()`. Subpixel rounding differences between the read and write caused ~1px growth per click.
+
+**Fix:** Removed the two `canvas.style.width/height` override lines. Canvas CSS stays at `100%`, only the resolution attributes (`.width`/`.height`) get updated.
+
+**Commit:** `Fix style transfer cards growing on each New Composition click` (+2/-2 lines)
+
+### 9e. Multi-threaded Visualization — Full Width
+
+**User prompt:** "Multi-thread visualization should take up the full widths like the other two modes."
+
+**Root cause:** Branch endpoints only went to `startX + w * 0.4` (~52% width).
+
+**Changes:**
+- Spread tree from 6% to 88% of canvas width
+- Added third generation of leaf branches (12 leaf nodes)
+- Three generations: origin → 3 branches → 6 children → 12 leaves
+- Each generation has its own animated traversal dots
+
+**Commit:** `Expand multi-threaded exploration to use full canvas width` (+70/-22 lines)
+
+### Version Tag
+
+```bash
+git tag v2.1 -m "Version 2.1: Accessibility fixes, exploration modes polish, style transfer fix"
+```
+
+## Updated Final Stats
+
+| Metric | v1.0 | v2.0 | v2.1 |
+|--------|------|------|------|
+| Sections | 9 | 21 | 21 |
+| Interactive demos | 5 | 17 | 17 |
+| Lines of JS | 4,660 | 14,625 | ~14,850 |
+| Lines of HTML | 622 | ~650 | ~650 |
+| Commits | 1 | 3 | 8 |
+| Git tags | — | v1.0, v2.0 | v1.0, v2.0, v2.1 |
+| Total agents spawned | 5 | 11 | 15 (11 + 4 a11y) |
+| Accessibility | Unchecked | Unchecked | WCAG AA (70 fixes) |
