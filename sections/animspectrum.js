@@ -558,19 +558,20 @@ const AnimSpectrumSection = (() => {
         line-height: 1.5;
       }
 
-      /* ---- Step Navigator ---- */
+      /* ---- Step Navigator (lives inside timeline strip) ---- */
       .as-step-nav {
-        position: relative;
-        height: 56px;
-        padding: 0 48px;
-        flex-shrink: 0;
+        position: absolute;
+        top: -52px;
+        left: 0;
+        right: 0;
+        height: 44px;
       }
 
       .as-step-line {
         position: absolute;
         top: 50%;
-        left: 80px;
-        right: 48px;
+        left: 32px;
+        right: 0;
         transform: translateY(-50%);
         height: 2px;
         background: rgba(255, 255, 255, 0.08);
@@ -869,13 +870,14 @@ const AnimSpectrumSection = (() => {
         display: block;
       }
 
-      /* ---- Timeline Strip ---- */
+      /* ---- Timeline Strip (includes step nav above) ---- */
       .as-timeline {
         flex-shrink: 0;
         height: 140px;
         padding: 0 48px;
         position: relative;
         border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        margin-top: 56px;
         margin-bottom: 24px;
       }
 
@@ -1092,11 +1094,10 @@ const AnimSpectrumSection = (() => {
       stepNav.appendChild(dot);
       stepDots.push(dot);
     }
-    domWrapper.appendChild(stepNav);
-
-    // Timeline strip — placed right after stepper so variable content height doesn't push it around
+    // Timeline strip contains both step nav and milestones
     timelineStrip = document.createElement('div');
     timelineStrip.className = 'as-timeline';
+    timelineStrip.appendChild(stepNav); // Step nav lives inside timeline for shared coordinates
     buildTimeline();
     domWrapper.appendChild(timelineStrip);
 
@@ -1277,17 +1278,10 @@ const AnimSpectrumSection = (() => {
     const trackRight = tlRect.width - 48;
     const trackWidth = trackRight - trackLeft;
 
-    // Position step nav dots — use timeline's absolute screen position
-    // to compute where each dot should be, then convert to stepNav-relative coords
-    if (stepNav && stepDots.length > 0) {
-      const navRect = stepNav.getBoundingClientRect();
-      for (let i = 0; i < stepDots.length && i < CG_MILESTONES.length; i++) {
-        // Milestone's absolute screen x
-        const absX = tlRect.left + trackLeft + CG_MILESTONES[i].x * trackWidth;
-        // Convert to stepNav-relative
-        const relX = absX - navRect.left;
-        stepDots[i].style.left = relX + 'px';
-      }
+    // Position step nav dots — same coordinate system as milestones (both inside timeline)
+    for (let i = 0; i < stepDots.length && i < CG_MILESTONES.length; i++) {
+      const xPos = trackLeft + CG_MILESTONES[i].x * trackWidth;
+      stepDots[i].style.left = xPos + 'px';
     }
 
     // Position milestones
