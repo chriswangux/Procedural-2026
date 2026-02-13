@@ -28,6 +28,8 @@ const ExplorationSection = {
   // Exploration modes state
   explorationMode: 0, // 0=linear, 1=multi-threaded, 2=agentive
   modeTransition: 0,
+  selectedMode: null, // null=auto-cycle, 0/1/2=user-selected
+  lastAutoTime: 0,
   agents: [],
 
   // ── Parametric seed system ──────────────────────────────────────────────
@@ -410,15 +412,16 @@ const ExplorationSection = {
     ctx.fillStyle = 'rgba(8, 10, 18, 0.95)';
     ctx.fillRect(0, 0, w, h);
 
-    // Cycle through modes
-    const cycleDuration = 5000; // ms per mode
+    // Determine current mode: user-selected or auto-cycle
+    const cycleDuration = 5000;
     const totalCycle = cycleDuration * 3;
     const cycleTime = time % totalCycle;
-    const currentMode = Math.floor(cycleTime / cycleDuration);
+    const autoMode = Math.floor(cycleTime / cycleDuration);
+    const currentMode = this.selectedMode !== null ? this.selectedMode : autoMode;
     const modeProgress = (cycleTime % cycleDuration) / cycleDuration;
 
     // Subtle grid background representing "design space"
-    ctx.strokeStyle = 'rgba(100, 120, 180, 0.08)';
+    ctx.strokeStyle = 'rgba(100, 120, 180, 0.06)';
     ctx.lineWidth = 1;
     const gridStep = 30;
     for (let x = 0; x < w; x += gridStep) {
@@ -428,6 +431,9 @@ const ExplorationSection = {
       ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
     }
 
+    // Store button regions for hit testing
+    this._modeBtnRects = [];
+
     // Mode labels
     const labels = ['Linear Exploration', 'Multi-threaded Exploration', 'Agentive Exploration'];
     const descriptions = [
@@ -436,47 +442,88 @@ const ExplorationSection = {
       'Autonomous agents explore continuously'
     ];
 
-    // Draw active mode indicator
-    const labelY = 28;
+    // Draw mode selector buttons
+    const labelY = 32;
     ctx.textAlign = 'center';
 
     for (let i = 0; i < 3; i++) {
       const lx = w * (i + 0.5) / 3;
       const isActive = i === currentMode;
-      ctx.font = `${isActive ? 'bold ' : ''}${isActive ? 13 : 11}px "SF Mono", "Fira Code", monospace`;
-      ctx.fillStyle = isActive ? 'rgba(220, 230, 255, 0.95)' : 'rgba(150, 160, 190, 0.4)';
+      const isSelected = i === this.selectedMode;
+      const btnW = Math.min(w / 3 - 16, 220);
+      const btnH = 52;
+      const btnX = lx - btnW / 2;
+      const btnY = 8;
+
+      // Store for hit-test
+      this._modeBtnRects.push({ x: btnX, y: btnY, w: btnW, h: btnH, mode: i });
+
+      // Button background
+      if (isActive) {
+        ctx.fillStyle = 'rgba(100, 140, 255, 0.1)';
+        ctx.beginPath();
+        ctx.roundRect(btnX, btnY, btnW, btnH, 8);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(100, 140, 255, 0.3)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      } else {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.02)';
+        ctx.beginPath();
+        ctx.roundRect(btnX, btnY, btnW, btnH, 8);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+
+      // Label text
+      const fontSize = isActive ? 13 : 11;
+      ctx.font = `${isActive ? '600 ' : '400 '}${fontSize}px "SF Mono", "Fira Code", monospace`;
+      ctx.fillStyle = isActive ? 'rgba(220, 230, 255, 0.95)' : 'rgba(150, 160, 190, 0.5)';
       ctx.fillText(labels[i], lx, labelY);
 
-      if (isActive) {
-        ctx.font = '10px "SF Mono", "Fira Code", monospace';
-        ctx.fillStyle = 'rgba(150, 170, 220, 0.6)';
-        ctx.fillText(descriptions[i], lx, labelY + 16);
+      // Description
+      ctx.font = '10px "SF Mono", "Fira Code", monospace';
+      ctx.fillStyle = isActive ? 'rgba(150, 170, 220, 0.6)' : 'rgba(150, 170, 220, 0.2)';
+      ctx.fillText(descriptions[i], lx, labelY + 16);
 
-        // Underline
-        const tw = ctx.measureText(labels[i]).width;
-        ctx.strokeStyle = 'rgba(130, 160, 255, 0.6)';
-        ctx.lineWidth = 2;
+      // Active indicator dot
+      if (isSelected) {
+        ctx.fillStyle = 'rgba(100, 160, 255, 0.8)';
         ctx.beginPath();
-        ctx.moveTo(lx - tw / 2, labelY + 4);
-        ctx.lineTo(lx + tw / 2, labelY + 4);
-        ctx.stroke();
+        ctx.arc(lx, btnY + btnH - 6, 3, 0, Math.PI * 2);
+        ctx.fill();
       }
     }
 
+    // Auto-cycle indicator
+    if (this.selectedMode === null) {
+      const barY = 64;
+      const barW = w * 0.3;
+      const barX = (w - barW) / 2;
+      ctx.fillStyle = 'rgba(100, 140, 255, 0.08)';
+      ctx.beginPath();
+      ctx.roundRect(barX, barY, barW, 3, 1.5);
+      ctx.fill();
+      const progress = (cycleTime % cycleDuration) / cycleDuration;
+      const segW = barW / 3;
+      const fillX = barX + autoMode * segW;
+      ctx.fillStyle = 'rgba(100, 160, 255, 0.4)';
+      ctx.beginPath();
+      ctx.roundRect(fillX, barY, segW * progress, 3, 1.5);
+      ctx.fill();
+    }
+
     // Drawing area
-    const drawY = 55;
+    const drawY = 75;
     const drawH = h - drawY - 10;
-    const drawCx = w / 2;
-    const drawCy = drawY + drawH / 2;
 
     if (currentMode === 0) {
-      // LINEAR: single arrow moving across the design space
       this._drawLinearMode(ctx, w, drawY, drawH, modeProgress, time);
     } else if (currentMode === 1) {
-      // MULTI-THREADED: branching tree of exploration
       this._drawMultiThreadedMode(ctx, w, drawY, drawH, modeProgress, time);
     } else {
-      // AGENTIVE: cloud of autonomous dots exploring
       this._drawAgentiveMode(ctx, w, drawY, drawH, modeProgress, time);
     }
   },
@@ -1013,8 +1060,44 @@ const ExplorationSection = {
     `;
 
     this.modesCanvas = document.createElement('canvas');
-    this.modesCanvas.style.cssText = 'width: 100%; height: 260px; display: block;';
+    this.modesCanvas.style.cssText = 'width: 100%; height: 480px; display: block; cursor: pointer;';
     modesContainer.appendChild(this.modesCanvas);
+
+    // Click handler for mode selection
+    this.modesCanvas.addEventListener('click', (e) => {
+      if (!this._modeBtnRects) return;
+      const rect = this.modesCanvas.getBoundingClientRect();
+      const mx = (e.clientX - rect.left);
+      const my = (e.clientY - rect.top);
+      for (const btn of this._modeBtnRects) {
+        if (mx >= btn.x && mx <= btn.x + btn.w && my >= btn.y && my <= btn.y + btn.h) {
+          // Toggle: click same mode again → return to auto-cycle
+          if (this.selectedMode === btn.mode) {
+            this.selectedMode = null;
+          } else {
+            this.selectedMode = btn.mode;
+          }
+          return;
+        }
+      }
+    });
+
+    // Hover cursor for buttons
+    this.modesCanvas.addEventListener('mousemove', (e) => {
+      if (!this._modeBtnRects) return;
+      const rect = this.modesCanvas.getBoundingClientRect();
+      const mx = (e.clientX - rect.left);
+      const my = (e.clientY - rect.top);
+      let overBtn = false;
+      for (const btn of this._modeBtnRects) {
+        if (mx >= btn.x && mx <= btn.x + btn.w && my >= btn.y && my <= btn.y + btn.h) {
+          overBtn = true;
+          break;
+        }
+      }
+      this.modesCanvas.style.cursor = overBtn ? 'pointer' : 'default';
+    });
+
     modesSection.appendChild(modesContainer);
     container.appendChild(modesSection);
 
