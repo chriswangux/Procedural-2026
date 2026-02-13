@@ -756,13 +756,15 @@ const AnimSpectrumSection = (() => {
 
       .as-step-content {
         opacity: 0;
-        transition: opacity 0.3s ease;
+        transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        transform: translateY(8px);
         display: none;
       }
 
       .as-step-content.active {
         display: block;
         opacity: 1;
+        transform: translateY(0);
       }
 
       .as-step-num {
@@ -921,7 +923,11 @@ const AnimSpectrumSection = (() => {
         transform: translateX(-50%);
         text-align: center;
         cursor: default;
-        transition: opacity 0.3s ease;
+        transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .as-milestone.active {
+        transform: translateX(-50%) scale(1.05);
       }
 
       .as-milestone.cg {
@@ -939,7 +945,7 @@ const AnimSpectrumSection = (() => {
         margin: 0 auto 4px;
         border: 2px solid rgba(255, 255, 255, 0.25);
         background: transparent;
-        transition: all 0.3s ease;
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
       }
 
       .as-milestone.active .as-milestone-dot {
@@ -962,7 +968,7 @@ const AnimSpectrumSection = (() => {
         font-weight: 500;
         color: rgba(255, 255, 255, 0.55);
         white-space: nowrap;
-        transition: color 0.3s ease;
+        transition: color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
       }
 
       .as-milestone.active .as-milestone-label {
@@ -983,8 +989,8 @@ const AnimSpectrumSection = (() => {
       .as-timeline-connection {
         position: absolute;
         width: 1px;
-        border-left: 1px dashed rgba(255, 255, 255, 0.12);
-        transition: border-color 0.3s ease, opacity 0.3s ease;
+        border-left: 1px dashed rgba(255, 255, 255, 0.06);
+        transition: border-color 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
       }
 
       .as-timeline-connection.active {
@@ -1007,12 +1013,14 @@ const AnimSpectrumSection = (() => {
         line-height: 1.55;
         color: rgba(255, 255, 255, 0.58);
         opacity: 0;
-        transition: opacity 0.3s ease;
+        transform: translateX(-50%) translateY(6px);
+        transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         pointer-events: none;
       }
 
       .as-timeline-callout.visible {
         opacity: 1;
+        transform: translateX(-50%) translateY(0);
       }
 
       .as-timeline-callout em {
