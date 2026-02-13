@@ -442,40 +442,21 @@ const ExplorationSection = {
       'Autonomous agents explore continuously'
     ];
 
-    // Draw mode selector buttons
-    const labelY = 32;
+    // Draw mode selectors with playful underline highlight
+    const labelY = 28;
     ctx.textAlign = 'center';
 
     for (let i = 0; i < 3; i++) {
       const lx = w * (i + 0.5) / 3;
       const isActive = i === currentMode;
       const isSelected = i === this.selectedMode;
-      const btnW = Math.min(w / 3 - 16, 220);
-      const btnH = 52;
-      const btnX = lx - btnW / 2;
-      const btnY = 8;
 
-      // Store for hit-test
-      this._modeBtnRects.push({ x: btnX, y: btnY, w: btnW, h: btnH, mode: i });
-
-      // Button background
-      if (isActive) {
-        ctx.fillStyle = 'rgba(100, 140, 255, 0.1)';
-        ctx.beginPath();
-        ctx.roundRect(btnX, btnY, btnW, btnH, 8);
-        ctx.fill();
-        ctx.strokeStyle = 'rgba(100, 140, 255, 0.3)';
-        ctx.lineWidth = 1;
-        ctx.stroke();
-      } else {
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.02)';
-        ctx.beginPath();
-        ctx.roundRect(btnX, btnY, btnW, btnH, 8);
-        ctx.fill();
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-        ctx.lineWidth = 1;
-        ctx.stroke();
-      }
+      // Hit-test region (generous clickable area, no visible box)
+      const hitW = w / 3 - 8;
+      const hitH = 52;
+      const hitX = lx - hitW / 2;
+      const hitY = 6;
+      this._modeBtnRects.push({ x: hitX, y: hitY, w: hitW, h: hitH, mode: i });
 
       // Label text
       const fontSize = isActive ? 13 : 11;
@@ -483,40 +464,61 @@ const ExplorationSection = {
       ctx.fillStyle = isActive ? 'rgba(220, 230, 255, 0.95)' : 'rgba(150, 160, 190, 0.55)';
       ctx.fillText(labels[i], lx, labelY);
 
-      // Description
+      // Playful underline highlight for active mode
+      if (isActive) {
+        const textW = ctx.measureText(labels[i]).width;
+        const underY = labelY + 4;
+        // Wavy/playful underline using a sine wave
+        ctx.beginPath();
+        ctx.strokeStyle = isSelected ? 'rgba(100, 170, 255, 0.8)' : 'rgba(100, 150, 255, 0.5)';
+        ctx.lineWidth = 2.5;
+        ctx.lineCap = 'round';
+        const startX = lx - textW / 2 - 4;
+        const endX = lx + textW / 2 + 4;
+        const waveAmp = 2;
+        const waveFreq = 0.12;
+        ctx.moveTo(startX, underY);
+        for (let px = startX; px <= endX; px += 2) {
+          const wave = Math.sin((px - startX) * waveFreq + time * 0.002) * waveAmp;
+          ctx.lineTo(px, underY + wave);
+        }
+        ctx.stroke();
+      }
+
+      // Description below
       ctx.font = '10px "SF Mono", "Fira Code", monospace';
       ctx.fillStyle = isActive ? 'rgba(150, 170, 220, 0.6)' : 'rgba(150, 170, 220, 0.45)';
-      ctx.fillText(descriptions[i], lx, labelY + 16);
+      ctx.fillText(descriptions[i], lx, labelY + 20);
 
-      // Active indicator dot
+      // Pinned indicator: small dot under the label
       if (isSelected) {
-        ctx.fillStyle = 'rgba(100, 160, 255, 0.8)';
+        ctx.fillStyle = 'rgba(100, 170, 255, 0.8)';
         ctx.beginPath();
-        ctx.arc(lx, btnY + btnH - 6, 3, 0, Math.PI * 2);
+        ctx.arc(lx, labelY + 32, 2.5, 0, Math.PI * 2);
         ctx.fill();
       }
     }
 
-    // Auto-cycle indicator
+    // Auto-cycle progress: thin line under all three labels
     if (this.selectedMode === null) {
-      const barY = 64;
-      const barW = w * 0.3;
+      const barY = labelY + 36;
+      const barW = w * 0.5;
       const barX = (w - barW) / 2;
-      ctx.fillStyle = 'rgba(100, 140, 255, 0.08)';
+      ctx.fillStyle = 'rgba(100, 140, 255, 0.06)';
       ctx.beginPath();
-      ctx.roundRect(barX, barY, barW, 3, 1.5);
+      ctx.roundRect(barX, barY, barW, 2, 1);
       ctx.fill();
       const progress = (cycleTime % cycleDuration) / cycleDuration;
       const segW = barW / 3;
       const fillX = barX + autoMode * segW;
-      ctx.fillStyle = 'rgba(100, 160, 255, 0.4)';
+      ctx.fillStyle = 'rgba(100, 160, 255, 0.35)';
       ctx.beginPath();
-      ctx.roundRect(fillX, barY, segW * progress, 3, 1.5);
+      ctx.roundRect(fillX, barY, segW * progress, 2, 1);
       ctx.fill();
     }
 
     // Drawing area
-    const drawY = 75;
+    const drawY = 72;
     const drawH = h - drawY - 10;
 
     if (currentMode === 0) {
