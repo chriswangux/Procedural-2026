@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Procedural Design — Design for & with AI</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #06080f;
+    --text: #e0e6f0;
+    --text-dim: rgba(180, 195, 220, 0.6);
+    --text-dimmer: rgba(140, 160, 200, 0.35);
+    --accent-blue: rgba(100, 140, 255, 0.8);
+    --accent-purple: rgba(180, 140, 255, 0.8);
+    --border: rgba(80, 100, 160, 0.12);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(100,120,160,0.3) transparent;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, 'Segoe UI', sans-serif;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Loading screen */
+  #loading-screen {
+    position: fixed; inset: 0; z-index: 9999;
+    background: #06080f;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    transition: opacity 0.8s ease, visibility 0.8s;
+  }
+  #loading-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+  .loading-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px; letter-spacing: 3px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+  .loading-bar {
+    width: 200px; height: 2px; background: rgba(100,120,160,0.15);
+    margin-top: 20px; border-radius: 1px; overflow: hidden;
+  }
+  .loading-bar-fill {
+    height: 100%; width: 0;
+    background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
+    border-radius: 1px;
+    animation: loadFill 1.5s ease-out forwards;
+  }
+  @keyframes loadFill { to { width: 100%; } }
+
+  /* Navigation dots */
+  #nav-dots {
+    position: fixed; right: 24px; top: 50%;
+    transform: translateY(-50%); z-index: 100;
+    display: flex; flex-direction: column;
+    gap: 12px; padding: 12px 6px;
+  }
+  .nav-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    cursor: pointer; transition: all 0.3s ease;
+    position: relative;
+  }
+  .nav-dot:hover { background: rgba(255,255,255,0.4); transform: scale(1.3); }
+  .nav-dot.active {
+    background: rgba(140, 170, 255, 0.8);
+    box-shadow: 0 0 12px rgba(140, 170, 255, 0.4);
+  }
+  .nav-dot::before {
+    content: attr(data-label);
+    position: absolute; right: 20px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 11px; color: rgba(255,255,255,0.5);
+    white-space: nowrap; pointer-events: none;
+    opacity: 0; transition: opacity 0.2s;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.5px;
+  }
+  .nav-dot:hover::before { opacity: 1; }
+
+  /* Sections */
+  .section {
+    min-height: 100vh;
+    position: relative;
+    overflow: hidden;
+  }
+  .section-content {
+    opacity: 0; transform: translateY(40px);
+    transition: opacity 0.9s ease, transform 0.9s ease;
+  }
+  .section-content.visible {
+    opacity: 1; transform: translateY(0);
+  }
+
+  /* Hero section */
+  #hero { background: #0a0a0f; }
+
+  /* Intro section */
+  #intro {
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    padding: 80px 40px;
+    background: linear-gradient(180deg, #0a0a0f 0%, #080a14 100%);
+  }
+  .intro-quote {
+    font-size: clamp(24px, 4vw, 48px);
+    font-weight: 300; text-align: center;
+    line-height: 1.5; max-width: 800px;
+    color: rgba(220, 225, 240, 0.85);
+    letter-spacing: -0.02em;
+  }
+  .intro-quote em {
+    font-style: italic;
+    background: linear-gradient(135deg, #6e9fff, #b88aff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .intro-subtext {
+    margin-top: 32px; font-size: 15px;
+    color: var(--text-dim); text-align: center;
+    max-width: 600px; line-height: 1.8;
+  }
+  .intro-definition {
+    margin-top: 60px; padding: 32px 40px;
+    background: rgba(100, 140, 255, 0.04);
+    border: 1px solid var(--border);
+    border-radius: 12px; max-width: 680px;
+  }
+  .intro-definition h3 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; font-weight: 500;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--accent-blue); margin-bottom: 16px;
+  }
+  .intro-definition p {
+    font-size: 16px; line-height: 1.8;
+    color: rgba(200, 210, 230, 0.75);
+  }
+
+  /* Themes overview */
+  #themes-overview {
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    padding: 100px 40px;
+    background: linear-gradient(180deg, #080a14 0%, #0a0a0f 100%);
+  }
+  .themes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 24px; max-width: 960px; width: 100%;
+    margin-top: 60px;
+  }
+  .theme-card {
+    padding: 32px 28px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    transition: all 0.4s ease;
+    cursor: default;
+  }
+  .theme-card:hover {
+    background: rgba(100, 140, 255, 0.04);
+    border-color: rgba(100, 140, 255, 0.2);
+    transform: translateY(-4px);
+  }
+  .theme-card .number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--accent-blue);
+    letter-spacing: 2px; margin-bottom: 12px;
+  }
+  .theme-card h3 {
+    font-size: 20px; font-weight: 600;
+    margin-bottom: 10px; letter-spacing: -0.02em;
+  }
+  .theme-card p {
+    font-size: 14px; color: var(--text-dim);
+    line-height: 1.7;
+  }
+
+  /* Interactive section wrappers */
+  #planets-section {
+    height: 100vh; min-height: 600px;
+  }
+
+  #spiderweb-section {
+    min-height: auto;
+    padding-bottom: 40px;
+    background: radial-gradient(ellipse at 50% 30%, #0e1118 0%, #080a10 60%, var(--bg) 100%);
+  }
+
+  #semantic-section {
+    height: 100vh; min-height: 700px;
+  }
+
+  #exploration-section {
+    min-height: auto;
+  }
+
+  /* Participatory section */
+  #participatory {
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    padding: 100px 40px;
+    background: linear-gradient(180deg, var(--bg) 0%, #080a14 100%);
+  }
+  .participatory-diagram {
+    display: flex; align-items: center; gap: 24px;
+    margin-top: 48px; flex-wrap: wrap;
+    justify-content: center;
+  }
+  .diagram-box {
+    padding: 20px 28px; border-radius: 10px;
+    text-align: center; min-width: 160px;
+  }
+  .diagram-box.left {
+    background: rgba(255, 110, 180, 0.06);
+    border: 1px solid rgba(255, 110, 180, 0.2);
+  }
+  .diagram-box.right {
+    background: rgba(100, 255, 180, 0.06);
+    border: 1px solid rgba(100, 255, 180, 0.2);
+  }
+  .diagram-box .label {
+    font-size: 11px; letter-spacing: 2px;
+    text-transform: uppercase; margin-bottom: 8px;
+    color: var(--text-dimmer);
+  }
+  .diagram-box .value {
+    font-size: 18px; font-weight: 600;
+  }
+  .diagram-box.left .value { color: rgba(255, 140, 200, 0.9); }
+  .diagram-box.right .value { color: rgba(100, 255, 180, 0.9); }
+  .diagram-arrow {
+    font-size: 24px; color: rgba(255,255,255,0.15);
+  }
+  .participatory-text {
+    margin-top: 48px; max-width: 640px;
+    text-align: center;
+  }
+  .participatory-text p {
+    font-size: 16px; line-height: 1.8;
+    color: var(--text-dim); margin-bottom: 16px;
+  }
+
+  /* Closing section */
+  #closing {
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    min-height: 80vh;
+    padding: 100px 40px;
+    background: radial-gradient(ellipse at 50% 60%, #0c0e1a 0%, #06080f 100%);
+  }
+  .closing-quote {
+    font-size: clamp(28px, 5vw, 56px);
+    font-weight: 300; text-align: center;
+    line-height: 1.5; max-width: 700px;
+    letter-spacing: -0.02em;
+  }
+  .closing-quote .line1 {
+    color: rgba(255, 180, 100, 0.85);
+  }
+  .closing-quote .line2 {
+    color: rgba(100, 180, 255, 0.85);
+  }
+  .closing-thanks {
+    margin-top: 60px; font-size: 14px;
+    color: var(--text-dimmer);
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 2px; text-transform: uppercase;
+  }
+  .closing-credit {
+    margin-top: 24px; font-size: 12px;
+    color: rgba(140, 160, 200, 0.25);
+  }
+
+  /* Section headers reused */
+  .section-header {
+    text-align: center; margin-bottom: 8px;
+  }
+  .section-header .overline {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--accent-blue);
+    margin-bottom: 12px;
+  }
+  .section-header h2 {
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 300; letter-spacing: -0.02em;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    #nav-dots { right: 10px; gap: 10px; }
+    .nav-dot { width: 6px; height: 6px; }
+    .nav-dot::before { display: none; }
+    .themes-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Loading Screen -->
+<div id="loading-screen">
+  <div class="loading-text">Procedural Design</div>
+  <div class="loading-bar"><div class="loading-bar-fill"></div></div>
+</div>
+
+<!-- Navigation Dots -->
+<nav id="nav-dots">
+  <div class="nav-dot active" data-label="Hero" data-target="hero"></div>
+  <div class="nav-dot" data-label="About" data-target="intro"></div>
+  <div class="nav-dot" data-label="Themes" data-target="themes-overview"></div>
+  <div class="nav-dot" data-label="Scale" data-target="planets-section"></div>
+  <div class="nav-dot" data-label="Agentive" data-target="spiderweb-section"></div>
+  <div class="nav-dot" data-label="Semantic" data-target="semantic-section"></div>
+  <div class="nav-dot" data-label="Exploration" data-target="exploration-section"></div>
+  <div class="nav-dot" data-label="Participatory" data-target="participatory"></div>
+  <div class="nav-dot" data-label="Close" data-target="closing"></div>
+</nav>
+
+<!-- 1. Hero -->
+<section id="hero" class="section"></section>
+
+<!-- 2. Intro -->
+<section id="intro" class="section">
+  <div class="section-content">
+    <div class="intro-quote">
+      <em>Design the machine</em><br>
+      that designs the design.
+    </div>
+    <p class="intro-subtext">
+      Transferring human knowledge and intents to machine-understandable
+      and art-directable processes through computation.
+    </p>
+    <div class="intro-definition">
+      <h3>Procedural</h3>
+      <p>
+        Generating content and design &mdash; such as environments, scenes,
+        animation, characters, material, architecture &mdash; <strong>computationally</strong>
+        rather than manually. Through data-driven simulation, controlled randomness,
+        and intelligent systems.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- 3. Themes Overview -->
+<section id="themes-overview" class="section">
+  <div class="section-content">
+    <div class="section-header">
+      <div class="overline">Themes of AI & Procedural</div>
+      <h2>Four Dimensions of Augmented Creativity</h2>
+    </div>
+    <div class="themes-grid">
+      <div class="theme-card">
+        <div class="number">01</div>
+        <h3>Human in the Loop</h3>
+        <p>Art-directable AI and procedural systems. The artist demonstrates design intent; AI fills in the in-betweens.</p>
+      </div>
+      <div class="theme-card">
+        <div class="number">02</div>
+        <h3>Exploration at Scale</h3>
+        <p>From linear, single-threaded exploration to multi-threaded, real-time, asynchronous and agentive design discovery.</p>
+      </div>
+      <div class="theme-card">
+        <div class="number">03</div>
+        <h3>Semantic Manipulation</h3>
+        <p>Moving beyond direct manipulation to semantic control. We are the conductor &mdash; expressing intent, not pixel positions.</p>
+      </div>
+      <div class="theme-card">
+        <div class="number">04</div>
+        <h3>Participatory Design</h3>
+        <p>Design at runtime. Moving from specification-based to simulation-based design, where emergent behaviors shape the outcome.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4. Planets / Scale -->
+<section id="planets-section" class="section"></section>
+
+<!-- 5. Spider Web / Agentive -->
+<section id="spiderweb-section" class="section"></section>
+
+<!-- 6. Semantic Manipulation -->
+<section id="semantic-section" class="section"></section>
+
+<!-- 7. Exploration at Scale -->
+<section id="exploration-section" class="section"></section>
+
+<!-- 8. Participatory Design -->
+<section id="participatory" class="section">
+  <div class="section-content">
+    <div class="section-header">
+      <div class="overline">Theme 04</div>
+      <h2>Participatory Design & Design at Runtime</h2>
+    </div>
+    <div class="participatory-diagram">
+      <div class="diagram-box left">
+        <div class="label">Pre-AI</div>
+        <div class="value">Specification-based</div>
+      </div>
+      <div class="diagram-arrow">&rarr;</div>
+      <div class="diagram-box right">
+        <div class="label">AI Era</div>
+        <div class="value">Simulation-based</div>
+      </div>
+    </div>
+    <div class="participatory-text">
+      <p>
+        In traditional design, we ship a fixed specification. With AI and procedural systems,
+        design parameters and controls become part of the core experience &mdash; enabling
+        emergent behaviors that evolve at runtime.
+      </p>
+      <p>
+        The shipped product becomes a living system where design exploration continues
+        beyond the designer's direct involvement, shaped by user interaction and
+        autonomous agent behavior.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- 9. Closing -->
+<section id="closing" class="section">
+  <div class="section-content">
+    <div class="closing-quote">
+      <div class="line1">Art challenges technology,</div>
+      <div class="line2">and technology inspires the art.</div>
+    </div>
+    <div class="closing-thanks">Thank you</div>
+    <div class="closing-credit">Procedural Design &mdash; First Draft 2019 &mdash; chriswangux@</div>
+  </div>
+</section>
+
+<!-- Section scripts -->
+<script>
+// ============================================================================
+// HERO SECTION
+// ============================================================================
+</script>
+<script src="sections/hero.js"></script>
+<script src="sections/planets.js"></script>
+<script src="sections/spiderweb.js"></script>
+<script src="sections/semantic.js"></script>
+<script src="sections/exploration.js"></script>
+
+<script>
+// ============================================================================
+// MAIN ORCHESTRATOR
+// ============================================================================
+(function() {
+  'use strict';
+
+  // Track which sections are visible and active
+  const sections = {};
+  const sectionModules = {
+    'hero': { module: HeroSection, initialized: false },
+    'planets-section': { module: PlanetSection, initialized: false },
+    'spiderweb-section': { module: SpiderWebSection, initialized: false },
+    'semantic-section': { module: SemanticSection, initialized: false },
+    'exploration-section': { module: ExplorationSection, initialized: false },
+  };
+
+  // Initialize modules when they first become visible
+  function initSection(id) {
+    const config = sectionModules[id];
+    if (!config || config.initialized) return;
+    const el = document.getElementById(id);
+    if (!el) return;
+    config.module.init(el);
+    config.initialized = true;
+  }
+
+  // Start/stop animations based on visibility
+  function setActive(id, active) {
+    const config = sectionModules[id];
+    if (!config || !config.initialized) return;
+    if (active) {
+      config.module.start();
+    } else {
+      config.module.stop();
+    }
+  }
+
+  // ── Intersection Observer for section visibility ──
+  const observerOptions = {
+    root: null,
+    rootMargin: '0px',
+    threshold: [0, 0.15, 0.5],
+  };
+
+  const sectionObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const id = entry.target.id;
+      const ratio = entry.intersectionRatio;
+
+      // Initialize on first visibility
+      if (ratio > 0 && sectionModules[id] && !sectionModules[id].initialized) {
+        initSection(id);
+        // Small delay to ensure DOM is ready
+        setTimeout(() => setActive(id, true), 50);
+      }
+
+      // Start/stop based on visibility
+      if (ratio > 0.1) {
+        setActive(id, true);
+      } else if (ratio === 0) {
+        setActive(id, false);
+      }
+
+      // Fade in section-content elements
+      const content = entry.target.querySelector('.section-content');
+      if (content) {
+        if (ratio > 0.15) {
+          content.classList.add('visible');
+        }
+      }
+    });
+  }, observerOptions);
+
+  // ── Navigation dots ──
+  const navDots = document.querySelectorAll('.nav-dot');
+  const allSections = document.querySelectorAll('.section');
+
+  navDots.forEach(dot => {
+    dot.addEventListener('click', () => {
+      const target = document.getElementById(dot.dataset.target);
+      if (target) target.scrollIntoView({ behavior: 'smooth' });
+    });
+  });
+
+  // Update active nav dot on scroll
+  const navObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.intersectionRatio > 0.3) {
+        navDots.forEach(d => d.classList.remove('active'));
+        const matchingDot = document.querySelector(`.nav-dot[data-target="${entry.target.id}"]`);
+        if (matchingDot) matchingDot.classList.add('active');
+      }
+    });
+  }, { threshold: [0.3] });
+
+  // ── Window resize handler ──
+  let resizeTimeout;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+      Object.keys(sectionModules).forEach(id => {
+        const config = sectionModules[id];
+        if (config.initialized && config.module.resize) {
+          config.module.resize();
+        }
+      });
+    }, 150);
+  });
+
+  // ── Keyboard navigation ──
+  const sectionIds = Array.from(allSections).map(s => s.id);
+  let currentSectionIdx = 0;
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown' || e.key === 'PageDown') {
+      e.preventDefault();
+      currentSectionIdx = Math.min(currentSectionIdx + 1, sectionIds.length - 1);
+      document.getElementById(sectionIds[currentSectionIdx]).scrollIntoView({ behavior: 'smooth' });
+    } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+      e.preventDefault();
+      currentSectionIdx = Math.max(currentSectionIdx - 1, 0);
+      document.getElementById(sectionIds[currentSectionIdx]).scrollIntoView({ behavior: 'smooth' });
+    }
+  });
+
+  // Track current section via scroll for keyboard nav
+  window.addEventListener('scroll', () => {
+    const scrollTop = window.scrollY + window.innerHeight / 2;
+    for (let i = allSections.length - 1; i >= 0; i--) {
+      if (allSections[i].offsetTop <= scrollTop) {
+        currentSectionIdx = i;
+        break;
+      }
+    }
+  }, { passive: true });
+
+  // ── Boot sequence ──
+  window.addEventListener('load', () => {
+    // Observe all sections
+    allSections.forEach(section => {
+      sectionObserver.observe(section);
+      navObserver.observe(section);
+    });
+
+    // Eagerly init hero
+    initSection('hero');
+    setActive('hero', true);
+
+    // Hide loading screen
+    setTimeout(() => {
+      document.getElementById('loading-screen').classList.add('hidden');
+    }, 1800);
+  });
+
+})();
+</script>
+</body>
+</html>
