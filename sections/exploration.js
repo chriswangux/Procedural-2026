@@ -480,12 +480,12 @@ const ExplorationSection = {
       // Label text
       const fontSize = isActive ? 13 : 11;
       ctx.font = `${isActive ? '600 ' : '400 '}${fontSize}px "SF Mono", "Fira Code", monospace`;
-      ctx.fillStyle = isActive ? 'rgba(220, 230, 255, 0.95)' : 'rgba(150, 160, 190, 0.5)';
+      ctx.fillStyle = isActive ? 'rgba(220, 230, 255, 0.95)' : 'rgba(150, 160, 190, 0.55)';
       ctx.fillText(labels[i], lx, labelY);
 
       // Description
       ctx.font = '10px "SF Mono", "Fira Code", monospace';
-      ctx.fillStyle = isActive ? 'rgba(150, 170, 220, 0.6)' : 'rgba(150, 170, 220, 0.2)';
+      ctx.fillStyle = isActive ? 'rgba(150, 170, 220, 0.6)' : 'rgba(150, 170, 220, 0.45)';
       ctx.fillText(descriptions[i], lx, labelY + 16);
 
       // Active indicator dot
@@ -753,7 +753,7 @@ const ExplorationSection = {
 
     // "Design space" label
     ctx.font = '9px "SF Mono", monospace';
-    ctx.fillStyle = 'rgba(130, 150, 200, 0.3)';
+    ctx.fillStyle = 'rgba(130, 150, 200, 0.55)';
     ctx.textAlign = 'left';
     ctx.fillText('design space', left + 5, top + 12);
   },
@@ -792,7 +792,7 @@ const ExplorationSection = {
     gridSection.style.cssText = 'margin-bottom: 60px;';
 
     const gridLabel = document.createElement('div');
-    gridLabel.style.cssText = 'font-size: 11px; text-transform: uppercase; letter-spacing: 3px; color: rgba(130,160,255,0.5); margin-bottom: 20px;';
+    gridLabel.style.cssText = 'font-size: 11px; text-transform: uppercase; letter-spacing: 3px; color: rgba(130,160,255,0.55); margin-bottom: 20px;';
     gridLabel.textContent = 'Generative Design Grid';
     gridSection.appendChild(gridLabel);
 
@@ -842,7 +842,7 @@ const ExplorationSection = {
     `;
 
     const ctrlTitle = document.createElement('div');
-    ctrlTitle.style.cssText = 'font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: rgba(130,160,255,0.5); margin-bottom: 20px;';
+    ctrlTitle.style.cssText = 'font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: rgba(130,160,255,0.55); margin-bottom: 20px;';
     ctrlTitle.textContent = 'Design Variables';
     controls.appendChild(ctrlTitle);
 
@@ -862,7 +862,7 @@ const ExplorationSection = {
       labelRow.style.cssText = 'display: flex; justify-content: space-between; margin-bottom: 6px;';
       labelRow.innerHTML = `
         <span style="font-size: 11px; color: rgba(180,190,220,0.7);">${def.label}</span>
-        <span style="font-size: 10px; color: rgba(130,150,200,0.4);" class="val-display">${(this.params[def.key] * 100).toFixed(0)}%</span>
+        <span style="font-size: 10px; color: rgba(130,150,200,0.55);" class="val-display">${(this.params[def.key] * 100).toFixed(0)}%</span>
       `;
       group.appendChild(labelRow);
 
@@ -887,8 +887,8 @@ const ExplorationSection = {
       const rangeLabels = document.createElement('div');
       rangeLabels.style.cssText = 'display: flex; justify-content: space-between; margin-top: 3px;';
       rangeLabels.innerHTML = `
-        <span style="font-size: 9px; color: rgba(130,150,200,0.3);">${def.lo}</span>
-        <span style="font-size: 9px; color: rgba(130,150,200,0.3);">${def.hi}</span>
+        <span style="font-size: 9px; color: rgba(130,150,200,0.55);">${def.lo}</span>
+        <span style="font-size: 9px; color: rgba(130,150,200,0.55);">${def.hi}</span>
       `;
       group.appendChild(rangeLabels);
 
@@ -933,7 +933,7 @@ const ExplorationSection = {
     interpSection.style.cssText = 'margin-bottom: 60px;';
 
     const interpLabel = document.createElement('div');
-    interpLabel.style.cssText = 'font-size: 11px; text-transform: uppercase; letter-spacing: 3px; color: rgba(130,160,255,0.5); margin-bottom: 20px;';
+    interpLabel.style.cssText = 'font-size: 11px; text-transform: uppercase; letter-spacing: 3px; color: rgba(130,160,255,0.55); margin-bottom: 20px;';
     interpLabel.textContent = 'Design Space Interpolation';
     interpSection.appendChild(interpLabel);
 
@@ -947,7 +947,7 @@ const ExplorationSection = {
 
     // Design A label
     const labelA = document.createElement('div');
-    labelA.style.cssText = 'font-size: 10px; color: rgba(130,160,255,0.5); text-align: center; min-width: 30px;';
+    labelA.style.cssText = 'font-size: 10px; color: rgba(130,160,255,0.55); text-align: center; min-width: 30px;';
     labelA.textContent = 'A';
     interpRow.appendChild(labelA);
 
@@ -981,7 +981,7 @@ const ExplorationSection = {
 
     // Design B label
     const labelB = document.createElement('div');
-    labelB.style.cssText = 'font-size: 10px; color: rgba(130,160,255,0.5); text-align: center; min-width: 30px;';
+    labelB.style.cssText = 'font-size: 10px; color: rgba(130,160,255,0.55); text-align: center; min-width: 30px;';
     labelB.textContent = 'B';
     interpRow.appendChild(labelB);
 
@@ -1008,7 +1008,7 @@ const ExplorationSection = {
     interpControls.appendChild(interpSlider);
 
     const interpVal = document.createElement('span');
-    interpVal.style.cssText = 'font-size: 10px; color: rgba(130,150,200,0.5); min-width: 30px;';
+    interpVal.style.cssText = 'font-size: 10px; color: rgba(130,150,200,0.55); min-width: 30px;';
     interpVal.textContent = 't = 0.50';
     interpControls.appendChild(interpVal);
     this._interpValDisplay = interpVal;
@@ -1048,7 +1048,7 @@ const ExplorationSection = {
     modesSection.style.cssText = 'margin-bottom: 40px;';
 
     const modesLabel = document.createElement('div');
-    modesLabel.style.cssText = 'font-size: 11px; text-transform: uppercase; letter-spacing: 3px; color: rgba(130,160,255,0.5); margin-bottom: 20px;';
+    modesLabel.style.cssText = 'font-size: 11px; text-transform: uppercase; letter-spacing: 3px; color: rgba(130,160,255,0.55); margin-bottom: 20px;';
     modesLabel.textContent = 'Exploration Modes';
     modesSection.appendChild(modesLabel);
 

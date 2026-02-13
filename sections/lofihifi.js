@@ -209,7 +209,7 @@ const LofiHifiSection = (() => {
       const lb = el('div', {
         fontFamily: "'JetBrains Mono', monospace", fontSize: '10px',
         letterSpacing: '2px', textTransform: 'uppercase',
-        color: 'rgba(255,255,255,0.35)', marginBottom: '6px', textAlign: 'center',
+        color: 'rgba(255,255,255,0.55)', marginBottom: '6px', textAlign: 'center',
       }, parent);
       lb.textContent = text;
     };

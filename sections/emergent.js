@@ -51,7 +51,7 @@ const EmergentSection = (() => {
     baseColors: ['rgba(74,158,255,0.1)', 'rgba(61,220,132,0.1)', 'rgba(255,159,67,0.1)'],
     baseBorders: ['rgba(74,158,255,0.3)', 'rgba(61,220,132,0.3)', 'rgba(255,159,67,0.3)'],
     text: '#e0e6ed',
-    textDim: '#6b7a8d',
+    textDim: '#8d9aad',
     accent: '#4a9eff',
     panel: 'rgba(10,14,24,0.85)',
     panelBorder: 'rgba(74,158,255,0.15)',

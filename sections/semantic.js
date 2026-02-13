@@ -569,7 +569,7 @@ const SemanticSection = {
 
       // Range labels
       ctx.font = `${fontSize * 0.8}px -apple-system, "Segoe UI", sans-serif`;
-      ctx.fillStyle = 'rgba(255,255,255,0.35)';
+      ctx.fillStyle = 'rgba(255,255,255,0.55)';
       ctx.textAlign = 'left';
       ctx.fillText(sd.left, startX, sy + sliderH * 2.8);
       ctx.textAlign = 'right';
@@ -720,7 +720,7 @@ const SemanticSection = {
     ctx.arc(dividerX, vsY, 20, 0, Math.PI * 2);
     ctx.fill();
     ctx.font = 'bold 12px -apple-system, "Segoe UI", sans-serif';
-    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.fillStyle = 'rgba(255,255,255,0.55)';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('VS', dividerX, vsY);
@@ -740,13 +740,13 @@ const SemanticSection = {
     // Year badges
     const badgeSize = Math.max(11, titleSize * 0.65);
     ctx.font = `600 ${badgeSize}px "SF Mono", "Fira Code", monospace`;
-    ctx.fillStyle = 'rgba(110, 127, 255, 0.5)';
+    ctx.fillStyle = 'rgba(110, 127, 255, 0.7)';
     ctx.fillText('1982', leftX, h * 0.03 + titleSize * 1.5);
-    ctx.fillStyle = 'rgba(255, 110, 180, 0.5)';
+    ctx.fillStyle = 'rgba(255, 110, 180, 0.7)';
     ctx.fillText('2019+', rightX, h * 0.03 + titleSize * 1.5);
 
     // Quotes at bottom
-    const quoteAlpha = 0.4 + Math.sin(t * 0.5) * 0.1;
+    const quoteAlpha = 0.55 + Math.sin(t * 0.5) * 0.1;
     const quoteSize = Math.max(9, Math.min(12, w * 0.01));
     ctx.font = `italic ${quoteSize}px Georgia, "Times New Roman", serif`;
     ctx.textBaseline = 'bottom';
@@ -756,7 +756,7 @@ const SemanticSection = {
     ctx.fillText('"The future of interactive systems', leftX, h - quoteSize * 2.5);
     ctx.fillText('and the emergence of Direct Manipulation."', leftX, h - quoteSize * 1.2);
     ctx.font = `${quoteSize * 0.9}px "SF Mono", "Fira Code", monospace`;
-    ctx.fillStyle = `rgba(110, 127, 255, ${quoteAlpha * 0.6})`;
+    ctx.fillStyle = `rgba(110, 127, 255, ${quoteAlpha * 0.8})`;
     ctx.fillText('-- Ben Shneiderman, 1982', leftX, h - 2);
 
     ctx.font = `italic ${quoteSize}px Georgia, "Times New Roman", serif`;
@@ -765,11 +765,11 @@ const SemanticSection = {
     ctx.fillText('"The future of interactive systems', rightX, h - quoteSize * 2.5);
     ctx.fillText('and the emergence of Semantic Manipulation."', rightX, h - quoteSize * 1.2);
     ctx.font = `${quoteSize * 0.9}px "SF Mono", "Fira Code", monospace`;
-    ctx.fillStyle = `rgba(255, 110, 180, ${quoteAlpha * 0.6})`;
+    ctx.fillStyle = `rgba(255, 110, 180, ${quoteAlpha * 0.8})`;
     ctx.fillText('-- 2019', rightX, h - 2);
 
     // "We are the conductor" — center bottom
-    const conductorAlpha = 0.3 + Math.sin(t * 0.7 + 1) * 0.15;
+    const conductorAlpha = 0.5 + Math.sin(t * 0.7 + 1) * 0.1;
     const condSize = Math.max(13, Math.min(20, w * 0.016));
     ctx.font = `300 ${condSize}px -apple-system, "Segoe UI", sans-serif`;
     ctx.fillStyle = `rgba(255, 255, 255, ${conductorAlpha})`;
@@ -782,11 +782,11 @@ const SemanticSection = {
     ctx.font = `${countSize}px "SF Mono", "Fira Code", monospace`;
     ctx.textBaseline = 'top';
 
-    ctx.fillStyle = 'rgba(110, 127, 255, 0.35)';
+    ctx.fillStyle = 'rgba(110, 127, 255, 0.6)';
     ctx.textAlign = 'center';
     ctx.fillText(`${this._handles.length} control points`, leftX, h * 0.03 + titleSize * 2.6);
 
-    ctx.fillStyle = 'rgba(255, 110, 180, 0.35)';
+    ctx.fillStyle = 'rgba(255, 110, 180, 0.6)';
     ctx.textAlign = 'center';
     ctx.fillText('4 semantic dimensions', rightX, h * 0.03 + titleSize * 2.6);
   },
@@ -799,7 +799,7 @@ const SemanticSection = {
     ctx.font = `${hintSize}px -apple-system, "Segoe UI", sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
-    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
     ctx.fillText('Drag any handle to reshape', leftX, faceY - r * 1.28);
     ctx.fillText('Move the sliders below', rightX, faceY - r * 1.28);
   },

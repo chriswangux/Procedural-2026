@@ -399,7 +399,7 @@ const HeroSection = (() => {
         font-weight: 300;
         letter-spacing: 0.3em;
         text-transform: uppercase;
-        color: rgba(160, 150, 200, 0.4);
+        color: rgba(160, 150, 200, 0.55);
         margin: 1.6rem 0 0 0;
         text-align: center;
         animation: heroFadeIn 2s ease-out 1.3s both;
@@ -424,13 +424,13 @@ const HeroSection = (() => {
         font-size: 0.65rem;
         letter-spacing: 0.25em;
         text-transform: uppercase;
-        color: rgba(180, 170, 220, 0.35);
+        color: rgba(180, 170, 220, 0.55);
       }
 
       .hero-chevron {
         width: 20px;
         height: 20px;
-        opacity: 0.35;
+        opacity: 0.55;
         animation: heroChevronBounce 2.5s ease-in-out infinite;
       }
 
@@ -451,7 +451,7 @@ const HeroSection = (() => {
       }
 
       @keyframes heroChevronBounce {
-        0%, 100% { transform: translateY(0); opacity: 0.35; }
+        0%, 100% { transform: translateY(0); opacity: 0.55; }
         50% { transform: translateY(8px); opacity: 0.6; }
       }
     `;

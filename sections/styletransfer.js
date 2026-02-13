@@ -759,7 +759,7 @@ const StyleTransferSection = (() => {
         font-size: 10px;
         letter-spacing: 1.5px;
         text-transform: uppercase;
-        color: rgba(232,230,227,0.4);
+        color: rgba(232,230,227,0.55);
         text-align: center;
       `;
 

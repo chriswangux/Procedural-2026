@@ -408,10 +408,10 @@ const SpiderWebSection = (() => {
       ctx.textAlign = 'center';
       ctx.fillText('Click to place anchor points', W / 2, H / 2);
       ctx.font = '13px "Inter", "SF Pro Display", system-ui, sans-serif';
-      ctx.fillStyle = 'rgba(180, 200, 230, 0.3)';
+      ctx.fillStyle = 'rgba(180, 200, 230, 0.55)';
       ctx.fillText('Place 3 or more anchors to weave a web', W / 2, H / 2 + 28);
     } else if (anchors.length < MIN_ANCHORS_FOR_WEB) {
-      ctx.fillStyle = 'rgba(180, 200, 230, 0.35)';
+      ctx.fillStyle = 'rgba(180, 200, 230, 0.55)';
       ctx.font = '13px "Inter", "SF Pro Display", system-ui, sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText(`Place ${MIN_ANCHORS_FOR_WEB - anchors.length} more anchor${MIN_ANCHORS_FOR_WEB - anchors.length > 1 ? 's' : ''} to begin weaving`, W / 2, H - 30);
@@ -601,7 +601,7 @@ const SpiderWebSection = (() => {
       right: 14px;
       font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
       font-size: 11px;
-      color: rgba(180, 200, 230, 0.3);
+      color: rgba(180, 200, 230, 0.5);
       pointer-events: none;
       z-index: 3;
     `;

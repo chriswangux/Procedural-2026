@@ -200,7 +200,7 @@ const ColorBoxSection = (() => {
     }
 
     // Axis labels
-    cx.fillStyle = 'rgba(232, 228, 222, 0.3)';
+    cx.fillStyle = 'rgba(232, 228, 222, 0.55)';
     cx.font = `${9 * dpr}px "JetBrains Mono", monospace`;
     cx.textAlign = 'left';
     const ranges = { hue: '360°', saturation: '100%', lightness: '100%' };
@@ -333,7 +333,7 @@ const ColorBoxSection = (() => {
       // HSL values
       const hslLabel = document.createElement('div');
       hslLabel.textContent = `${Math.round(color.h)}° ${Math.round(color.s)}% ${Math.round(color.l)}%`;
-      hslLabel.style.cssText = 'font-size:8px;color:rgba(232,228,222,0.35);font-family:"JetBrains Mono",monospace;';
+      hslLabel.style.cssText = 'font-size:8px;color:rgba(232,228,222,0.55);font-family:"JetBrains Mono",monospace;';
       swatch.appendChild(hslLabel);
 
       swatchContainer.appendChild(swatch);
@@ -402,7 +402,7 @@ const ColorBoxSection = (() => {
     cx.strokeRect(0, barTop, w, barH);
 
     // Hue labels
-    cx.fillStyle = 'rgba(232, 228, 222, 0.35)';
+    cx.fillStyle = 'rgba(232, 228, 222, 0.55)';
     cx.font = `${8 * dpr}px "JetBrains Mono", monospace`;
     cx.textAlign = 'center';
     [0, 60, 120, 180, 240, 300, 360].forEach(deg => {
@@ -676,7 +676,7 @@ const ColorBoxSection = (() => {
     percSection.appendChild(perceptionCanvas);
 
     const percCaption = document.createElement('div');
-    percCaption.style.cssText = 'font-size:10px;color:rgba(232,228,222,0.3);font-family:"JetBrains Mono",monospace;margin-top:6px;';
+    percCaption.style.cssText = 'font-size:10px;color:rgba(232,228,222,0.55);font-family:"JetBrains Mono",monospace;margin-top:6px;';
     percCaption.textContent = 'Human vision is more sensitive to green and red, less sensitive to blue — identical lightness values appear different in brightness.';
     percSection.appendChild(percCaption);
 

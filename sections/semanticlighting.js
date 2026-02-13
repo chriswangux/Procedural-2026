@@ -277,7 +277,7 @@ const SemanticLightingSection = (() => {
     ['Sun X', 'Sun Y', 'Shadow Angle', 'Ambient Level'].forEach(k => {
       const item = el('div', {
         fontFamily: "'JetBrains Mono', monospace", fontSize: '11px',
-        color: 'rgba(255,255,255,0.5)', display: 'flex', gap: '6px', alignItems: 'center',
+        color: 'rgba(255,255,255,0.55)', display: 'flex', gap: '6px', alignItems: 'center',
       }, directPanel);
       const lbl = document.createTextNode(k + ': ');
       item.appendChild(lbl);
@@ -305,7 +305,7 @@ const SemanticLightingSection = (() => {
     const lbl = el('div', {
       fontFamily: "'JetBrains Mono', monospace", fontSize: '10px',
       letterSpacing: '2px', textTransform: 'uppercase',
-      color: 'rgba(255,255,255,0.35)',
+      color: 'rgba(255,255,255,0.55)',
     }, group);
     lbl.textContent = label;
     return group;

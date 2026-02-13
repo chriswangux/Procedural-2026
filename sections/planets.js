@@ -718,7 +718,7 @@ const PlanetSection = (() => {
       padding: 40px 48px; pointer-events: none;
     `;
     topBar.innerHTML = `
-      <div style="font-size: 13px; text-transform: uppercase; letter-spacing: 3px; color: rgba(255,255,255,0.4); margin-bottom: 8px;">
+      <div style="font-size: 13px; text-transform: uppercase; letter-spacing: 3px; color: rgba(255,255,255,0.55); margin-bottom: 8px;">
         Procedural Generation
       </div>
       <div style="font-size: 28px; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 16px;">
@@ -729,7 +729,7 @@ const PlanetSection = (() => {
           <span style="font-size: 36px; font-weight: 700; color: #7dd3fc;">~5</span>
           <span style="font-size: 14px; color: rgba(255,255,255,0.5);">developers</span>
         </div>
-        <div style="font-size: 20px; color: rgba(255,255,255,0.2);">&rarr;</div>
+        <div style="font-size: 20px; color: rgba(255,255,255,0.45);">&rarr;</div>
         <div style="display: flex; align-items: baseline; gap: 8px;">
           <span style="font-size: 36px; font-weight: 700; color: #c4b5fd;">18.4 quintillion</span>
           <span style="font-size: 14px; color: rgba(255,255,255,0.5);">unique planets</span>
@@ -764,7 +764,7 @@ const PlanetSection = (() => {
     // Seed input
     const seedLabel = document.createElement('label');
     seedLabel.style.cssText = `
-      font-size: 13px; color: rgba(255,255,255,0.4); display: flex; align-items: center; gap: 8px;
+      font-size: 13px; color: rgba(255,255,255,0.55); display: flex; align-items: center; gap: 8px;
     `;
     seedLabel.textContent = 'Seed:';
     const seedInput = document.createElement('input');
@@ -853,7 +853,7 @@ const PlanetSection = (() => {
     const typeLabel = document.createElement('div');
     typeLabel.id = 'planet-type';
     typeLabel.style.cssText = `
-      font-size: 13px; color: rgba(255,255,255,0.35); margin-left: auto;
+      font-size: 13px; color: rgba(255,255,255,0.55); margin-left: auto;
       text-transform: uppercase; letter-spacing: 2px;
     `;
     typeLabel.textContent = '';

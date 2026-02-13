@@ -411,14 +411,14 @@ const SemanticAnimationSection = (() => {
 
       // Value text
       ctx.textAlign = 'right';
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
       ctx.font = `400 ${fontSize - 1}px "JetBrains Mono", "SF Mono", monospace`;
       ctx.fillText(val.toFixed(2), startX + sliderW, sy);
 
       // Range labels
       if (d.left && d.right) {
         ctx.font = `400 ${fontSize - 2}px "Inter", -apple-system, sans-serif`;
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
         ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
         ctx.fillText(d.left, startX, sy + fontSize + sliderH + 8);
@@ -537,12 +537,12 @@ const SemanticAnimationSection = (() => {
 
     // Description
     ctx.font = '400 13px "Inter", -apple-system, sans-serif';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
     const desc = 'Control motion through meaning \u2014 mood, energy, weight \u2014 not individual joint angles.';
     ctx.fillText(desc, w / 2, headerY + 48);
 
     ctx.font = '400 12px "Inter", -apple-system, sans-serif';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
     ctx.fillText('Inspired by Disney and Pixar semantic animation research', w / 2, headerY + 66);
   }
 
@@ -692,7 +692,7 @@ const SemanticAnimationSection = (() => {
     ctx.arc(divX, vsY, 18, 0, Math.PI * 2);
     ctx.fill();
     ctx.font = 'bold 11px "Inter", -apple-system, sans-serif';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('VS', divX, vsY);
@@ -711,7 +711,7 @@ const SemanticAnimationSection = (() => {
 
     // Subtitle
     ctx.font = '400 11px "Inter", -apple-system, sans-serif';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
     ctx.fillText('Individual joint angle parameters', leftCenterX, titleY + 18);
     ctx.fillText('High-level meaning maps to all parameters', rightCenterX, titleY + 18);
 
@@ -760,7 +760,7 @@ const SemanticAnimationSection = (() => {
 
     // Hint text
     ctx.font = '400 10px "Inter", -apple-system, sans-serif';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
     ctx.fillText('Adjust each parameter individually', leftCenterX, figureY - 65 * scale);

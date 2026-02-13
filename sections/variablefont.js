@@ -318,7 +318,7 @@ const VariableFontSection = (() => {
 
     // Title
     ctx.font = '10px "JetBrains Mono", monospace';
-    ctx.fillStyle = 'rgba(180,190,220,0.5)';
+    ctx.fillStyle = 'rgba(180,190,220,0.55)';
     ctx.textBaseline = 'top';
     ctx.fillText('VARIATION AXES', sx, sy);
 
@@ -363,7 +363,7 @@ const VariableFontSection = (() => {
 
       // Lo/Hi labels
       ctx.font = '9px "JetBrains Mono", monospace';
-      ctx.fillStyle = 'rgba(180,190,220,0.25)';
+      ctx.fillStyle = 'rgba(180,190,220,0.55)';
       ctx.textBaseline = 'top';
       ctx.fillText(meta.lo, sx, trackY + trackH + 3);
       ctx.textAlign = 'right';
@@ -401,12 +401,12 @@ const VariableFontSection = (() => {
 
     // Title
     ctx.font = '10px "JetBrains Mono", monospace';
-    ctx.fillStyle = 'rgba(180,190,220,0.5)';
+    ctx.fillStyle = 'rgba(180,190,220,0.55)';
     ctx.textBaseline = 'top';
     ctx.fillText('DESIGN SPACE', gx, gy - 24);
 
     // Axis labels
-    ctx.fillStyle = 'rgba(180,190,220,0.3)';
+    ctx.fillStyle = 'rgba(180,190,220,0.55)';
     ctx.font = '9px "JetBrains Mono", monospace';
     ctx.textBaseline = 'bottom';
     ctx.fillText('Weight \u2192', gx, gy - 4);
@@ -530,7 +530,7 @@ const VariableFontSection = (() => {
 
     // Axes readout below word
     ctx.font = '10px "JetBrains Mono", monospace';
-    ctx.fillStyle = 'rgba(180,190,220,0.3)';
+    ctx.fillStyle = 'rgba(180,190,220,0.55)';
     ctx.textBaseline = 'top';
     ctx.textAlign = 'center';
     const readout = `wght:${axes.weight.toFixed(2)}  wdth:${axes.width.toFixed(2)}  opsz:${axes.opticalSize.toFixed(2)}  slnt:${axes.slant.toFixed(2)}`;

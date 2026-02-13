@@ -540,7 +540,7 @@ const AnimSpectrumSection = (() => {
 
     // Range labels
     ctx.font = '400 8px "Inter", -apple-system, sans-serif';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
     ctx.fillText('Subtle', sx, y + sliderH + 4);
@@ -565,7 +565,7 @@ const AnimSpectrumSection = (() => {
     ctx.fillText('The Animation Spectrum', w / 2, headerY + 16);
 
     ctx.font = '400 12px "Inter", -apple-system, sans-serif';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
     ctx.fillText(
       'From purely procedural to AI-driven \u2014 each approach has trade-offs in controllability,',
       w / 2, headerY + 44
@@ -813,7 +813,7 @@ const AnimSpectrumSection = (() => {
     ctx.stroke();
 
     ctx.font = '400 9px "JetBrains Mono", "SF Mono", monospace';
-    ctx.fillStyle = 'rgba(100, 140, 255, 0.2)';
+    ctx.fillStyle = 'rgba(100, 140, 255, 0.5)';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'bottom';
     ctx.fillText('More procedural', marginX + colW * 0.3, arrowY - 4);
@@ -834,7 +834,7 @@ const AnimSpectrumSection = (() => {
 
       // Subtitle
       ctx.font = '400 10px "Inter", -apple-system, sans-serif';
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
       ctx.fillText(method.subtitle, cx, labelY + 20);
 
       // Method-specific visual indicator

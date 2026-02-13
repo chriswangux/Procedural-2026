@@ -716,7 +716,7 @@ const FirewatchSection = (() => {
       font-size: 10px;
       letter-spacing: 1.5px;
       text-transform: uppercase;
-      color: rgba(232,230,227,0.45);
+      color: rgba(232,230,227,0.55);
     `;
 
     const valDisplay = document.createElement('span');

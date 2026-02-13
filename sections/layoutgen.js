@@ -504,7 +504,7 @@ const LayoutGenSection = (() => {
 
     // "Layout Mode" label
     ctx.font = '10px "JetBrains Mono", monospace';
-    ctx.fillStyle = 'rgba(180,190,220,0.5)';
+    ctx.fillStyle = 'rgba(180,190,220,0.55)';
     ctx.textBaseline = 'top';
     ctx.fillText('LAYOUT MODE', cx + pad, cy + pad);
 
@@ -556,7 +556,7 @@ const LayoutGenSection = (() => {
     // Seed display
     by += btnH + 16;
     ctx.font = '10px "JetBrains Mono", monospace';
-    ctx.fillStyle = 'rgba(180,190,220,0.35)';
+    ctx.fillStyle = 'rgba(180,190,220,0.55)';
     ctx.textBaseline = 'top';
     ctx.fillText(`seed: ${seed}`, cx + pad, by);
 
@@ -570,7 +570,7 @@ const LayoutGenSection = (() => {
       ctx.fillStyle = info.border;
       ctx.fillRect(cx + pad, by, 8, 8);
       ctx.font = '10px Inter, system-ui, sans-serif';
-      ctx.fillStyle = 'rgba(180,190,220,0.5)';
+      ctx.fillStyle = 'rgba(180,190,220,0.55)';
       ctx.fillText(info.label, cx + pad + 14, by);
       by += 16;
     }

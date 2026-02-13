@@ -373,7 +373,7 @@ const ParametricArchSection = (() => {
     ctx.stroke();
 
     // Height label
-    ctx.fillStyle = 'rgba(100, 140, 255, 0.4)';
+    ctx.fillStyle = 'rgba(100, 140, 255, 0.55)';
     ctx.font = `${10 * dpr}px "JetBrains Mono", monospace`;
     ctx.textAlign = 'center';
     const hVal = ((groundY - topY) / dpr).toFixed(0);
