@@ -10,7 +10,7 @@ const AnimSpectrumSection = (() => {
   let running = false, animFrameId = null;
   let width = 0, height = 0, dpr = 1;
   let time = 0;
-  let currentStep = 0;
+  let currentStep = -1;
   let autoAdvanceTimer = null;
   let idleResumeTimer = null;
   let autoAdvancePaused = false;
@@ -560,20 +560,18 @@ const AnimSpectrumSection = (() => {
 
       /* ---- Step Navigator ---- */
       .as-step-nav {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 20px 24px 28px;
-        gap: 0;
-        flex-shrink: 0;
         position: relative;
+        height: 56px;
+        padding: 0 48px;
+        flex-shrink: 0;
       }
 
       .as-step-line {
         position: absolute;
         top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
+        left: 80px;
+        right: 48px;
+        transform: translateY(-50%);
         height: 2px;
         background: rgba(255, 255, 255, 0.08);
         pointer-events: none;
@@ -589,11 +587,13 @@ const AnimSpectrumSection = (() => {
         font-size: 13px;
         font-weight: 600;
         cursor: pointer;
-        position: relative;
+        position: absolute;
+        top: 50%;
+        transform: translate(-50%, -50%);
         z-index: 1;
         transition: all 0.3s ease;
         border: 2px solid rgba(255, 255, 255, 0.3);
-        background: transparent;
+        background: #06080f;
         color: rgba(255, 255, 255, 0.6);
         margin: 0 16px;
         user-select: none;
@@ -1081,6 +1081,8 @@ const AnimSpectrumSection = (() => {
     stepNav.appendChild(lineEl);
 
     stepDots = [];
+    // x positions matching CG_MILESTONES so step numbers align with timeline
+    const stepXPositions = CG_MILESTONES.map(m => m.x);
     for (let i = 0; i < 6; i++) {
       const dot = document.createElement('div');
       dot.className = 'as-step-dot';
@@ -1275,6 +1277,12 @@ const AnimSpectrumSection = (() => {
     const trackRight = rect.width - 48;
     const trackWidth = trackRight - trackLeft;
 
+    // Position step nav dots to align with milestones
+    for (let i = 0; i < stepDots.length && i < CG_MILESTONES.length; i++) {
+      const xPos = trackLeft + CG_MILESTONES[i].x * trackWidth;
+      stepDots[i].style.left = xPos + 'px';
+    }
+
     // Position milestones
     const milestones = timelineStrip.querySelectorAll('.as-milestone');
     milestones.forEach(el => {
@@ -1292,7 +1300,6 @@ const AnimSpectrumSection = (() => {
       const aiIdx = parseInt(el.dataset.aiIdx);
       const cgData = CG_MILESTONES[cgIdx];
       const aiData = AI_MILESTONES[aiIdx];
-      // Use average x position of the two endpoints
       const avgX = (cgData.x + aiData.x) / 2;
       const xPos = trackLeft + avgX * trackWidth;
       el.style.left = xPos + 'px';
@@ -1379,15 +1386,7 @@ const AnimSpectrumSection = (() => {
       }
     }
 
-    // Update step line width
-    const lineEl = stepNav.querySelector('.as-step-line');
-    if (lineEl && stepDots.length >= 2) {
-      const firstRect = stepDots[0].getBoundingClientRect();
-      const lastRect = stepDots[stepDots.length - 1].getBoundingClientRect();
-      const navRect = stepNav.getBoundingClientRect();
-      const lineWidth = lastRect.left + lastRect.width / 2 - (firstRect.left + firstRect.width / 2);
-      lineEl.style.width = lineWidth + 'px';
-    }
+    // Step line spans full track area via CSS (left:80px, right:48px)
   }
 
   function updateTimelineHighlights() {
