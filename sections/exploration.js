@@ -593,21 +593,40 @@ const ExplorationSection = {
   _drawMultiThreadedMode(ctx, w, y0, h, progress, time) {
     const cx = w / 2;
     const cy = y0 + h / 2;
-    const startX = w * 0.12;
+    const startX = w * 0.06;
+    const midX = w * 0.3;
+    const endX = w * 0.58;
+    const leafX = w * 0.88;
 
-    // Draw branching tree
+    // Draw branching tree spanning full width
     const branches = [
-      { from: [startX, cy], to: [startX + w * 0.2, cy - h * 0.25], children: [
-        { from: null, to: [startX + w * 0.4, cy - h * 0.35] },
-        { from: null, to: [startX + w * 0.4, cy - h * 0.15] },
+      { from: [startX, cy], to: [midX, cy - h * 0.3], children: [
+        { from: null, to: [endX, cy - h * 0.4], leaves: [
+          { to: [leafX, cy - h * 0.45] },
+          { to: [leafX, cy - h * 0.35] },
+        ]},
+        { from: null, to: [endX, cy - h * 0.15], leaves: [
+          { to: [leafX, cy - h * 0.2] },
+          { to: [leafX, cy - h * 0.1] },
+        ]},
       ]},
-      { from: [startX, cy], to: [startX + w * 0.2, cy], children: [
-        { from: null, to: [startX + w * 0.4, cy - h * 0.05] },
-        { from: null, to: [startX + w * 0.4, cy + h * 0.05] },
+      { from: [startX, cy], to: [midX, cy], children: [
+        { from: null, to: [endX, cy - h * 0.05], leaves: [
+          { to: [leafX, cy - h * 0.05] },
+        ]},
+        { from: null, to: [endX, cy + h * 0.05], leaves: [
+          { to: [leafX, cy + h * 0.05] },
+        ]},
       ]},
-      { from: [startX, cy], to: [startX + w * 0.2, cy + h * 0.25], children: [
-        { from: null, to: [startX + w * 0.4, cy + h * 0.15] },
-        { from: null, to: [startX + w * 0.4, cy + h * 0.35] },
+      { from: [startX, cy], to: [midX, cy + h * 0.3], children: [
+        { from: null, to: [endX, cy + h * 0.15], leaves: [
+          { to: [leafX, cy + h * 0.1] },
+          { to: [leafX, cy + h * 0.2] },
+        ]},
+        { from: null, to: [endX, cy + h * 0.4], leaves: [
+          { to: [leafX, cy + h * 0.35] },
+          { to: [leafX, cy + h * 0.45] },
+        ]},
       ]},
     ];
 
@@ -649,34 +668,63 @@ const ExplorationSection = {
       ctx.arc(dx, dy, 3.5, 0, Math.PI * 2);
       ctx.fill();
 
-      // Child branches
+      // Child branches (generation 2)
       branch.children.forEach((child, ci) => {
-        const [ctx2, cty] = child.to;
-        ctx.strokeStyle = 'rgba(100, 160, 255, 0.2)';
-        ctx.lineWidth = 1.5;
+        const [cx2, cy2] = child.to;
+        ctx.strokeStyle = 'rgba(100, 160, 255, 0.25)';
+        ctx.lineWidth = 1.8;
         ctx.beginPath();
         ctx.moveTo(tx, ty);
-        ctx.lineTo(ctx2, cty);
+        ctx.lineTo(cx2, cy2);
         ctx.stroke();
 
-        // Secondary dots
+        // Animated dot on child branch
         const ct = (Math.sin(time * 0.002 + bi * 2 + ci * 1.5) + 1) / 2;
-        const cdx = tx + (ctx2 - tx) * ct;
-        const cdy = ty + (cty - ty) * ct;
+        const cdx = tx + (cx2 - tx) * ct;
+        const cdy = ty + (cy2 - ty) * ct;
         ctx.fillStyle = 'rgba(140, 190, 255, 0.7)';
         ctx.beginPath();
         ctx.arc(cdx, cdy, 2.5, 0, Math.PI * 2);
         ctx.fill();
 
-        // End nodes
+        // Child end node
         ctx.strokeStyle = 'rgba(100, 160, 255, 0.3)';
         ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.arc(ctx2, cty, 8, 0, Math.PI * 2);
+        ctx.arc(cx2, cy2, 6, 0, Math.PI * 2);
         ctx.stroke();
+
+        // Leaf branches (generation 3)
+        if (child.leaves) {
+          child.leaves.forEach((leaf, li) => {
+            const [lx, ly] = leaf.to;
+            ctx.strokeStyle = 'rgba(100, 160, 255, 0.15)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(cx2, cy2);
+            ctx.lineTo(lx, ly);
+            ctx.stroke();
+
+            // Leaf dot
+            const lt = (Math.sin(time * 0.0025 + bi * 3 + ci * 2 + li * 1.8) + 1) / 2;
+            const ldx = cx2 + (lx - cx2) * lt;
+            const ldy = cy2 + (ly - cy2) * lt;
+            ctx.fillStyle = 'rgba(140, 190, 255, 0.5)';
+            ctx.beginPath();
+            ctx.arc(ldx, ldy, 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Leaf end node
+            ctx.strokeStyle = 'rgba(100, 160, 255, 0.2)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.arc(lx, ly, 5, 0, Math.PI * 2);
+            ctx.stroke();
+          });
+        }
       });
 
-      // Branch end node
+      // Branch end node (generation 1)
       ctx.strokeStyle = 'rgba(100, 160, 255, 0.4)';
       ctx.lineWidth = 1.5;
       ctx.beginPath();
