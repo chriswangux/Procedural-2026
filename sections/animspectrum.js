@@ -558,29 +558,10 @@ const AnimSpectrumSection = (() => {
         line-height: 1.5;
       }
 
-      /* ---- Step Navigator (lives inside timeline strip) ---- */
-      .as-step-nav {
-        position: absolute;
-        top: -52px;
-        left: 0;
-        right: 0;
-        height: 44px;
-      }
-
-      .as-step-line {
-        position: absolute;
-        top: 50%;
-        left: 32px;
-        right: 0;
-        transform: translateY(-50%);
-        height: 2px;
-        background: rgba(255, 255, 255, 0.08);
-        pointer-events: none;
-      }
-
-      .as-step-dot {
-        width: 36px;
-        height: 36px;
+      /* ---- Step Number (inside each CG milestone, above the dot) ---- */
+      .as-step-num {
+        width: 34px;
+        height: 34px;
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -588,35 +569,33 @@ const AnimSpectrumSection = (() => {
         font-size: 13px;
         font-weight: 600;
         cursor: pointer;
-        position: absolute;
-        top: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 1;
-        transition: all 0.3s ease;
+        margin: 0 auto 8px;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         border: 2px solid rgba(255, 255, 255, 0.3);
         background: #06080f;
         color: rgba(255, 255, 255, 0.6);
-        margin: 0 16px;
         user-select: none;
         -webkit-user-select: none;
+        position: relative;
+        z-index: 2;
       }
 
-      .as-step-dot:hover {
+      .as-step-num:hover {
         border-color: rgba(255, 255, 255, 0.5);
+        color: rgba(255, 255, 255, 0.8);
+      }
+
+      .as-milestone.completed .as-step-num {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.35);
         color: rgba(255, 255, 255, 0.7);
       }
 
-      .as-step-dot.completed {
-        background: rgba(255, 255, 255, 0.12);
-        border-color: rgba(255, 255, 255, 0.4);
-        color: rgba(255, 255, 255, 0.7);
-      }
-
-      .as-step-dot.active {
-        border-color: var(--step-color);
-        background: color-mix(in srgb, var(--step-color) 15%, transparent);
-        color: var(--step-color);
-        box-shadow: 0 0 20px color-mix(in srgb, var(--step-color) 30%, transparent);
+      .as-milestone.active .as-step-num {
+        border-color: var(--dot-color);
+        background: color-mix(in srgb, var(--dot-color) 15%, transparent);
+        color: var(--dot-color);
+        box-shadow: 0 0 16px color-mix(in srgb, var(--dot-color) 30%, transparent);
       }
 
       /* ---- Content Area ---- */
@@ -873,11 +852,10 @@ const AnimSpectrumSection = (() => {
       /* ---- Timeline Strip (includes step nav above) ---- */
       .as-timeline {
         flex-shrink: 0;
-        height: 140px;
+        height: 200px;
         padding: 0 48px;
         position: relative;
         border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        margin-top: 56px;
         margin-bottom: 24px;
       }
 
@@ -890,11 +868,11 @@ const AnimSpectrumSection = (() => {
       }
 
       .as-timeline-track.cg {
-        top: 34px;
+        top: 76px;
       }
 
       .as-timeline-track.ai {
-        top: 98px;
+        top: 152px;
       }
 
       .as-timeline-track-label {
@@ -911,12 +889,12 @@ const AnimSpectrumSection = (() => {
       }
 
       .as-timeline-track-label.cg {
-        top: 26px;
+        top: 68px;
         color: rgba(100, 180, 255, 0.55);
       }
 
       .as-timeline-track-label.ai {
-        top: 90px;
+        top: 144px;
         color: rgba(255, 150, 100, 0.55);
       }
 
@@ -933,11 +911,11 @@ const AnimSpectrumSection = (() => {
       }
 
       .as-milestone.cg {
-        top: 22px;
+        top: 0px;
       }
 
       .as-milestone.ai {
-        top: 86px;
+        top: 140px;
       }
 
       .as-milestone-dot {
@@ -1073,31 +1051,10 @@ const AnimSpectrumSection = (() => {
     `;
     domWrapper.appendChild(headerEl);
 
-    // ---- Step Navigator ----
-    stepNav = document.createElement('div');
-    stepNav.className = 'as-step-nav';
-
-    // Background line
-    const lineEl = document.createElement('div');
-    lineEl.className = 'as-step-line';
-    stepNav.appendChild(lineEl);
-
+    // Timeline strip (step numbers are integrated into CG milestones)
     stepDots = [];
-    // x positions matching CG_MILESTONES so step numbers align with timeline
-    const stepXPositions = CG_MILESTONES.map(m => m.x);
-    for (let i = 0; i < 6; i++) {
-      const dot = document.createElement('div');
-      dot.className = 'as-step-dot';
-      dot.textContent = String(i + 1);
-      dot.style.setProperty('--step-color', STEPS[i].color);
-      dot.addEventListener('click', () => goToStep(i, true));
-      stepNav.appendChild(dot);
-      stepDots.push(dot);
-    }
-    // Timeline strip contains both step nav and milestones
     timelineStrip = document.createElement('div');
     timelineStrip.className = 'as-timeline';
-    timelineStrip.appendChild(stepNav); // Step nav lives inside timeline for shared coordinates
     buildTimeline();
     domWrapper.appendChild(timelineStrip);
 
@@ -1217,7 +1174,7 @@ const AnimSpectrumSection = (() => {
     aiTrack.className = 'as-timeline-track ai';
     timelineStrip.appendChild(aiTrack);
 
-    // CG milestones
+    // CG milestones (with integrated step numbers)
     for (let i = 0; i < CG_MILESTONES.length; i++) {
       const m = CG_MILESTONES[i];
       const el = document.createElement('div');
@@ -1227,13 +1184,30 @@ const AnimSpectrumSection = (() => {
       el.dataset.step = String(m.step);
       el.dataset.track = 'cg';
       el.dataset.index = String(i);
-      el.style.setProperty('--dot-color', 'rgba(100, 180, 255, 0.8)');
-      // Position will be set in updateTimelinePositions
-      el.innerHTML = `
-        <div class="as-milestone-dot"></div>
-        <div class="as-milestone-label">${m.label}</div>
-        <div class="as-milestone-year">${m.year}</div>
-      `;
+      el.style.setProperty('--dot-color', STEPS[m.step].color);
+
+      // Step number circle (perfectly aligned — same element)
+      const stepNum = document.createElement('div');
+      stepNum.className = 'as-step-num';
+      stepNum.textContent = String(m.step + 1);
+      stepNum.addEventListener('click', () => goToStep(m.step, true));
+      el.appendChild(stepNum);
+      stepDots.push(stepNum);
+
+      const dot = document.createElement('div');
+      dot.className = 'as-milestone-dot';
+      el.appendChild(dot);
+
+      const label = document.createElement('div');
+      label.className = 'as-milestone-label';
+      label.textContent = m.label;
+      el.appendChild(label);
+
+      const year = document.createElement('div');
+      year.className = 'as-milestone-year';
+      year.textContent = m.year;
+      el.appendChild(year);
+
       timelineStrip.appendChild(el);
     }
 
@@ -1278,13 +1252,7 @@ const AnimSpectrumSection = (() => {
     const trackRight = tlRect.width - 48;
     const trackWidth = trackRight - trackLeft;
 
-    // Position step nav dots — same coordinate system as milestones (both inside timeline)
-    for (let i = 0; i < stepDots.length && i < CG_MILESTONES.length; i++) {
-      const xPos = trackLeft + CG_MILESTONES[i].x * trackWidth;
-      stepDots[i].style.left = xPos + 'px';
-    }
-
-    // Position milestones
+    // Position milestones (step numbers are inside CG milestones, auto-aligned)
     const milestones = timelineStrip.querySelectorAll('.as-milestone');
     milestones.forEach(el => {
       const track = el.dataset.track;
@@ -1304,8 +1272,8 @@ const AnimSpectrumSection = (() => {
       const avgX = (cgData.x + aiData.x) / 2;
       const xPos = trackLeft + avgX * trackWidth;
       el.style.left = xPos + 'px';
-      el.style.top = '44px';
-      el.style.height = '44px';
+      el.style.top = '86px';
+      el.style.height = '56px';
     });
   }
 
@@ -1376,27 +1344,19 @@ const AnimSpectrumSection = (() => {
   }
 
   function updateNavDots() {
-    for (let i = 0; i < stepDots.length; i++) {
-      const dot = stepDots[i];
-      dot.classList.remove('active', 'completed');
-      dot.style.setProperty('--step-color', STEPS[i].color);
-      if (i === currentStep) {
-        dot.classList.add('active');
-      } else if (i < currentStep) {
-        dot.classList.add('completed');
-      }
-    }
-
-    // Step line spans full track area via CSS (left:80px, right:48px)
+    // Step numbers are now styled via milestone active/completed/dimmed classes
+    // No separate nav dot styling needed
   }
 
   function updateTimelineHighlights() {
     const milestones = timelineStrip.querySelectorAll('.as-milestone');
     milestones.forEach(el => {
       const step = parseInt(el.dataset.step);
-      el.classList.remove('active', 'dimmed');
+      el.classList.remove('active', 'dimmed', 'completed');
       if (step === currentStep) {
         el.classList.add('active');
+      } else if (step < currentStep) {
+        el.classList.add('completed');
       } else {
         el.classList.add('dimmed');
       }
