@@ -447,7 +447,7 @@ const VariableFontSection = (() => {
           slant: axes.slant,
         };
         const miniW = cellSize * 0.75;
-        const miniColor = isCurrent ? 'rgba(200,210,240,0.9)' : 'rgba(200,210,240,0.35)';
+        const miniColor = isCurrent ? 'rgba(200,210,240,0.9)' : 'rgba(200,210,240,0.55)';
         renderWord(cx, cy, miniW, miniAx, miniColor, null, 0);
       }
     }

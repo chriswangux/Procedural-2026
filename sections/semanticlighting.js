@@ -326,7 +326,7 @@ const SemanticLightingSection = (() => {
       padding: '5px 12px', border: '1px solid rgba(255,255,255,0.12)',
       borderRadius: '5px',
       background: active ? 'rgba(100,140,255,0.15)' : 'rgba(255,255,255,0.04)',
-      color: active ? 'rgba(100,140,255,0.9)' : 'rgba(255,255,255,0.5)',
+      color: active ? 'rgba(100,140,255,0.9)' : 'rgba(255,255,255,0.55)',
       cursor: 'pointer', fontSize: '12px',
       fontFamily: "'Inter', sans-serif", transition: 'all 0.2s',
     }, parent);

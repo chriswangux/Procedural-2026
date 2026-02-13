@@ -570,7 +570,7 @@ const ColorBoxSection = (() => {
       const ranges = { hue: '0 – 360°', saturation: '0 – 100%', lightness: '0 – 100%' };
       label.innerHTML = `
         <span style="font-size:12px;color:${colors[name]};font-family:'JetBrains Mono',monospace;font-weight:600;text-transform:capitalize;">${name}</span>
-        <span style="font-size:10px;color:rgba(232,228,222,0.35);font-family:'JetBrains Mono',monospace;margin-left:6px;">${ranges[name]}</span>
+        <span style="font-size:10px;color:rgba(232,228,222,0.55);font-family:'JetBrains Mono',monospace;margin-left:6px;">${ranges[name]}</span>
       `;
       wrap.appendChild(label);
 
@@ -667,7 +667,7 @@ const ColorBoxSection = (() => {
     percSection.style.cssText = 'margin-bottom:12px;';
 
     const percLabel = document.createElement('div');
-    percLabel.style.cssText = 'font-size:12px;color:rgba(232,228,222,0.45);font-family:"JetBrains Mono",monospace;margin-bottom:8px;';
+    percLabel.style.cssText = 'font-size:12px;color:rgba(232,228,222,0.55);font-family:"JetBrains Mono",monospace;margin-bottom:8px;';
     percLabel.textContent = 'Human Luminosity Sensitivity';
     percSection.appendChild(percLabel);
 
