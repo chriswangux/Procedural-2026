@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Building Procedural Design</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #fafaf8;
+    --bg-alt: #f2f1ee;
+    --bg-card: #f5f4f1;
+    --text: #1a1a2e;
+    --text-secondary: #555566;
+    --text-tertiary: #888899;
+    --accent: #3b5bdb;
+    --accent-light: #edf0ff;
+    --border: #e2e1de;
+    --code-bg: #f0efe9;
+    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+  }
+
+  html {
+    font-size: 17px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.72;
+  }
+
+  /* Layout */
+  .container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* Header */
+  .site-header {
+    padding: 80px 0 64px;
+    text-align: center;
+  }
+
+  .site-header .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 20px;
+  }
+
+  .site-header h1 {
+    font-size: 2.6rem;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+
+  .site-header .subtitle {
+    font-size: 1.15rem;
+    font-weight: 400;
+    line-height: 1.55;
+    color: var(--text-secondary);
+    max-width: 560px;
+    margin: 0 auto 28px;
+  }
+
+  .site-header .meta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    font-size: 0.82rem;
+    color: var(--text-tertiary);
+  }
+
+  .site-header .meta .dot {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--text-tertiary);
+  }
+
+  .site-header .meta a {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 500;
+  }
+  .site-header .meta a:hover { text-decoration: underline; }
+
+  /* Content */
+  article { padding-bottom: 80px; }
+
+  article p {
+    margin-bottom: 1.4em;
+    color: var(--text);
+  }
+
+  article h2 {
+    font-size: 1.55rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-top: 56px;
+    margin-bottom: 12px;
+    line-height: 1.25;
+  }
+
+  article h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-top: 32px;
+    margin-bottom: 8px;
+    line-height: 1.35;
+  }
+
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-top: 56px;
+    margin-bottom: 8px;
+  }
+
+  /* Dividers */
+  hr {
+    border: none;
+    height: 1px;
+    background: var(--border);
+    margin: 56px 0;
+  }
+
+  /* Links */
+  article a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-decoration-color: rgba(59, 91, 219, 0.3);
+    text-underline-offset: 2px;
+    transition: text-decoration-color 0.15s;
+  }
+  article a:hover {
+    text-decoration-color: var(--accent);
+  }
+
+  /* Blockquote */
+  blockquote {
+    border-left: 3px solid var(--accent);
+    padding: 2px 0 2px 24px;
+    margin: 28px 0;
+    font-style: italic;
+    color: var(--text-secondary);
+    font-size: 1.05rem;
+    line-height: 1.65;
+  }
+  blockquote em { font-style: normal; font-weight: 500; color: var(--text); }
+
+  /* Stat Callout */
+  .stat-callout {
+    background: var(--bg-card);
+    border-radius: 10px;
+    padding: 20px 28px;
+    margin: 32px 0;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .stat-callout .stat-number {
+    font-family: var(--font-mono);
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--accent);
+    white-space: nowrap;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+
+  .stat-callout .stat-text {
+    font-size: 0.92rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  /* Stats Grid */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin: 36px 0;
+  }
+
+  .stat-box {
+    background: var(--bg-card);
+    border-radius: 10px;
+    padding: 20px 16px;
+    text-align: center;
+  }
+
+  .stat-box .number {
+    font-family: var(--font-mono);
+    font-size: 1.65rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    margin-bottom: 4px;
+  }
+
+  .stat-box .label {
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    line-height: 1.3;
+  }
+
+  /* Agent Team Diagram */
+  .agent-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 28px 0;
+  }
+
+  .agent-card {
+    background: var(--bg-card);
+    border-radius: 8px;
+    padding: 16px;
+    border: 1px solid var(--border);
+  }
+
+  .agent-card .agent-label {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 500;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+
+  .agent-card .agent-focus {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+    line-height: 1.3;
+  }
+
+  .agent-card .agent-sections {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    line-height: 1.45;
+  }
+
+  /* Insight list */
+  .insight-list {
+    list-style: none;
+    margin: 24px 0;
+    padding: 0;
+  }
+
+  .insight-list li {
+    position: relative;
+    padding-left: 24px;
+    margin-bottom: 16px;
+    line-height: 1.6;
+  }
+
+  .insight-list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 10px;
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    background: var(--accent);
+    opacity: 0.5;
+  }
+
+  .insight-list li strong {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  /* Phase indicator */
+  .phase-chip {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--accent-light);
+    padding: 4px 10px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+  }
+
+  /* Demo list */
+  .demo-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 16px 0 24px;
+  }
+
+  .demo-tag {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    background: var(--code-bg);
+    color: var(--text-secondary);
+    padding: 5px 12px;
+    border-radius: 5px;
+    white-space: nowrap;
+  }
+
+  /* Footer */
+  .site-footer {
+    border-top: 1px solid var(--border);
+    padding: 48px 0 80px;
+    text-align: center;
+  }
+
+  .footer-links {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .footer-links a {
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .footer-links a:hover { text-decoration: underline; }
+
+  .footer-note {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--text-tertiary);
+  }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    html { font-size: 16px; }
+    .site-header { padding: 56px 0 48px; }
+    .site-header h1 { font-size: 2rem; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .agent-grid { grid-template-columns: 1fr; }
+    .stat-callout { flex-direction: column; align-items: flex-start; gap: 8px; }
+  }
+
+  @media (max-width: 440px) {
+    .site-header h1 { font-size: 1.7rem; }
+    .site-header .subtitle { font-size: 1.02rem; }
+    .site-header .meta { flex-direction: column; gap: 4px; }
+    .site-header .meta .dot { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header class="site-header">
+    <div class="eyebrow">Case Study</div>
+    <h1>Building Procedural Design</h1>
+    <p class="subtitle">How AI agent teams turned a presentation deck into a 21-section interactive web experience</p>
+    <div class="meta">
+      <span>Built with Claude Code</span>
+      <span class="dot"></span>
+      <a href="../index.html">View the live experience &rarr;</a>
+    </div>
+  </header>
+
+  <article>
+
+    <!-- Section 1 -->
+    <p>It started with a Google Slides presentation. A designer exploring the intersection of procedural systems and creative practice had built a deck around one provocation:</p>
+
+    <blockquote>"Designing the machine that designs the design."</blockquote>
+
+    <p>The deck was dense with ideas &mdash; particle simulations, generative architecture, semantic lighting, style transfer, emergent behavior. Each slide a window into how procedural thinking could reshape creative work. But slides are static. The ideas in this deck begged to be <em>experienced</em>.</p>
+
+    <p>The question became: could we turn this deck into something interactive, where every idea is not just explained but demonstrated?</p>
+
+    <hr>
+
+    <!-- Section 2 -->
+    <div class="section-label">Phase 1</div>
+    <h2>The First Prototype</h2>
+
+    <p>The first pass took an aggressive approach: spawn five AI agents in parallel, each responsible for building one interactive section from scratch. No shared code. No design system. Just a prompt and a PDF.</p>
+
+    <p>Each agent independently interpreted a concept from the deck and built a fully interactive demo:</p>
+
+    <div class="demo-tags">
+      <span class="demo-tag">Particle Systems</span>
+      <span class="demo-tag">Planet Generator</span>
+      <span class="demo-tag">Spider Web Sim</span>
+      <span class="demo-tag">Semantic Manipulation</span>
+      <span class="demo-tag">Generative Design Grids</span>
+    </div>
+
+    <p>Five agents working simultaneously, each producing a self-contained interactive section with its own canvas, controls, and animation loop. The results were stitched together into a single scrollable page with a cohesive dark theme and smooth navigation.</p>
+
+    <div class="stat-callout">
+      <span class="stat-number">5 &times; 5</span>
+      <span class="stat-text">Five agents, five sections, roughly 5,500 lines of code &mdash; built simultaneously in a single parallel run.</span>
+    </div>
+
+    <p>It worked. But it only scratched the surface.</p>
+
+    <hr>
+
+    <!-- Section 3 -->
+    <div class="section-label">Phase 2</div>
+    <h2>Going Exhaustive</h2>
+
+    <p>The first prototype captured about five of the deck's twenty-five-plus ideas. The user's direction was clear: <em>be exhaustive</em>. Don't skip a single concept.</p>
+
+    <p>A systematic audit of the original presentation identified twenty missing ideas that hadn't been built. These were grouped into coherent themes and scoped into twelve new interactive sections, each requiring its own simulation, rendering approach, or interactive model.</p>
+
+    <p>This wasn't incremental. It was a ground-up expansion &mdash; nearly tripling the scope while maintaining the visual language and interaction patterns established in Phase 1.</p>
+
+    <hr>
+
+    <!-- Section 4 -->
+    <h2>The Full Build</h2>
+
+    <p>For the expansion, the build scaled to six parallel agents. Each was assigned a cluster of thematically related sections to maintain consistency within each domain.</p>
+
+    <div class="agent-grid">
+      <div class="agent-card">
+        <div class="agent-label">Agent 1</div>
+        <div class="agent-focus">Artistic Rendering</div>
+        <div class="agent-sections">Spider-Verse, Firewatch, Style Transfer</div>
+      </div>
+      <div class="agent-card">
+        <div class="agent-label">Agent 2</div>
+        <div class="agent-focus">Design Tools</div>
+        <div class="agent-sections">Layouts, Variable Fonts</div>
+      </div>
+      <div class="agent-card">
+        <div class="agent-label">Agent 3</div>
+        <div class="agent-focus">Scene Rendering</div>
+        <div class="agent-sections">Lofi-to-Hifi, Semantic Lighting</div>
+      </div>
+      <div class="agent-card">
+        <div class="agent-label">Agent 4</div>
+        <div class="agent-focus">Animation</div>
+        <div class="agent-sections">Walk Cycle, Animation Spectrum</div>
+      </div>
+      <div class="agent-card">
+        <div class="agent-label">Agent 5</div>
+        <div class="agent-focus">Simulation</div>
+        <div class="agent-sections">Emergent Agents</div>
+      </div>
+      <div class="agent-card">
+        <div class="agent-label">Agent 6</div>
+        <div class="agent-focus">Generative</div>
+        <div class="agent-sections">Architecture, Color</div>
+      </div>
+    </div>
+
+    <p>All six agents worked in parallel &mdash; twelve new sections built simultaneously, each with its own canvas rendering, interactive controls, and educational context. The results were integrated into the existing page alongside the original five sections.</p>
+
+    <div class="stat-callout">
+      <span class="stat-number">6 &rarr; 12</span>
+      <span class="stat-text">Six agents working in parallel produced twelve new interactive sections, bringing the total to twenty-one.</span>
+    </div>
+
+    <hr>
+
+    <!-- Section 5 -->
+    <h2>The Meta Connection</h2>
+
+    <p>There's something recursive about this project. The deck itself argues for procedural, AI-augmented design &mdash; and that's exactly how it was built. The process mirrors the ideas:</p>
+
+    <ul class="insight-list">
+      <li><strong>Human in the Loop</strong> &mdash; A human directed the vision, set the quality bar, and decided what to build. The agents filled in the details, wrote the code, and handled the combinatorial complexity.</li>
+      <li><strong>Exploration at Scale</strong> &mdash; Six agents exploring different design spaces simultaneously is exactly the "explore more, faster" thesis of the deck. No single person could have prototyped twelve interactive simulations in parallel.</li>
+      <li><strong>Procedural at Every Level</strong> &mdash; Each interactive section generates its visuals from rules and parameters, not hand-crafted assets. The spiders build webs from tension rules. The cities grow from architectural grammars. The particles follow force fields.</li>
+      <li><strong>Participatory, Not Passive</strong> &mdash; Viewers don't just read about procedural design &mdash; they drag sliders, click canvases, and watch systems respond. The ideas are experienced, not explained.</li>
+    </ul>
+
+    <p>The medium became the message.</p>
+
+    <hr>
+
+    <!-- Section 6 -->
+    <h2>By the Numbers</h2>
+
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="number">21</div>
+        <div class="label">Sections</div>
+      </div>
+      <div class="stat-box">
+        <div class="number">17</div>
+        <div class="label">Interactive Demos</div>
+      </div>
+      <div class="stat-box">
+        <div class="number">14,625</div>
+        <div class="label">Lines of Code</div>
+      </div>
+      <div class="stat-box">
+        <div class="number">17</div>
+        <div class="label">JS Modules</div>
+      </div>
+      <div class="stat-box">
+        <div class="number">0</div>
+        <div class="label">Dependencies</div>
+      </div>
+      <div class="stat-box">
+        <div class="number">11</div>
+        <div class="label">AI Agents</div>
+      </div>
+      <div class="stat-box">
+        <div class="number">2</div>
+        <div class="label">Build Phases</div>
+      </div>
+      <div class="stat-box">
+        <div class="number">1</div>
+        <div class="label">Source PDF</div>
+      </div>
+    </div>
+
+    <p>Every line is vanilla HTML, CSS, and JavaScript. No frameworks, no build tools, no dependencies. Every interactive demo runs in a <code style="font-family: var(--font-mono); font-size: 0.88em; background: var(--code-bg); padding: 2px 6px; border-radius: 3px;">&lt;canvas&gt;</code> element with its own animation loop.</p>
+
+  </article>
+
+  <footer class="site-footer">
+    <div class="footer-links">
+      <a href="../index.html">Live Experience</a>
+      <a href="https://github.com/chriswangai/Procedural-2026">GitHub</a>
+    </div>
+    <div class="footer-note">v1.0 &rarr; v2.0 &mdash; both preserved via git tags</div>
+  </footer>
+</div>
+
+</body>
+</html>
