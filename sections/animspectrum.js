@@ -877,6 +877,11 @@ const AnimSpectrumSection = (() => {
         position: relative;
         border-top: 1px solid rgba(255, 255, 255, 0.05);
         margin-top: 32px;
+        transition: height 0.5s cubic-bezier(0.4, 0, 0.2, 1), padding-bottom 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .as-timeline.has-callout {
+        height: 200px;
       }
 
       .as-timeline-track {
@@ -997,25 +1002,25 @@ const AnimSpectrumSection = (() => {
         border-left-color: rgba(255, 255, 255, 0.35);
       }
 
-      /* Callout between tracks */
+      /* Callout below both tracks */
       .as-timeline-callout {
         position: absolute;
-        top: 50px;
+        top: 130px;
         left: 50%;
-        transform: translateX(-50%);
-        text-align: center;
-        max-width: 440px;
-        padding: 8px 16px;
-        background: rgba(255, 110, 180, 0.06);
-        border: 1px solid rgba(255, 110, 180, 0.12);
-        border-radius: 6px;
-        font-size: 11.5px;
-        line-height: 1.55;
-        color: rgba(255, 255, 255, 0.58);
-        opacity: 0;
         transform: translateX(-50%) translateY(6px);
+        text-align: center;
+        max-width: 480px;
+        padding: 10px 20px;
+        background: rgba(255, 110, 180, 0.06);
+        border: 1px solid rgba(255, 110, 180, 0.15);
+        border-radius: 8px;
+        font-size: 12px;
+        line-height: 1.55;
+        color: rgba(255, 255, 255, 0.65);
+        opacity: 0;
         transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         pointer-events: none;
+        z-index: 5;
       }
 
       .as-timeline-callout.visible {
@@ -1443,10 +1448,14 @@ const AnimSpectrumSection = (() => {
       el.classList.toggle('active', cgStep === currentStep);
     });
 
-    // Callout visibility at step 5
+    // Callout visibility at step 5 (index 4) — expand timeline to fit
     const callout = document.getElementById('as-timeline-callout');
+    const showCallout = currentStep === 4;
     if (callout) {
-      callout.classList.toggle('visible', currentStep === 4);
+      callout.classList.toggle('visible', showCallout);
+    }
+    if (timelineStrip) {
+      timelineStrip.classList.toggle('has-callout', showCallout);
     }
   }
 
