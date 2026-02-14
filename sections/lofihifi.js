@@ -399,9 +399,13 @@ const LofiHifiSection = (() => {
     const w = canvasW, h = canvasH;
     if (w === 0 || h === 0) return;
 
-    // Read sketch pixel data at 1:1 (CSS pixels)
-    // We sample the sketch canvas at its DPR-scaled resolution
-    const sketchImageData = sketchCtx.getImageData(0, 0, w, h);
+    // Read sketch at CSS pixel resolution via offscreen canvas (DPR-correct)
+    const readOff = document.createElement('canvas');
+    readOff.width = w;
+    readOff.height = h;
+    const readOffCtx = readOff.getContext('2d');
+    readOffCtx.drawImage(sketchCanvas, 0, 0, w, h);
+    const sketchImageData = readOffCtx.getImageData(0, 0, w, h);
     const sketchPx = sketchImageData.data;
 
     // Build classification map at reduced resolution for performance
@@ -670,9 +674,16 @@ const LofiHifiSection = (() => {
       }
     }
 
-    const finalData = renderCtx.createImageData(w, h);
+    // Write via offscreen canvas + drawImage so DPR transform is respected
+    const writeOff = document.createElement('canvas');
+    writeOff.width = w;
+    writeOff.height = h;
+    const writeOffCtx = writeOff.getContext('2d');
+    const finalData = writeOffCtx.createImageData(w, h);
     finalData.data.set(blurred);
-    renderCtx.putImageData(finalData, 0, 0);
+    writeOffCtx.putImageData(finalData, 0, 0);
+    renderCtx.clearRect(0, 0, w, h);
+    renderCtx.drawImage(writeOff, 0, 0, w, h);
   }
 
   // ==========================================================================

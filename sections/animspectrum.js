@@ -22,7 +22,9 @@ const AnimSpectrumSection = (() => {
   // ---- Physics state ----
   let rlPerturbState = new Float64Array(16);
   let rlPerturbVel = new Float64Array(16);
-  let deepMimicError = new Float64Array(16);
+  let deepMimicError = new Float64Array(18);
+  let quadRlPerturbState = new Float64Array(18);
+  let quadRlPerturbVel = new Float64Array(18);
 
   // ---- Collapse state (Step 3) ----
   let collapsePhase = 0; // 0 = walking, 1 = fully collapsed
@@ -66,6 +68,28 @@ const AnimSpectrumSection = (() => {
   ];
 
   const HEAD_RADIUS = 12;
+
+  // ================================================================
+  //  QUADRUPED SKELETON (for RL + Physics step — DeepLoco)
+  // ================================================================
+  const QUAD_JOINT_COUNT = 18;
+  const QUAD_JOINT_PARENT = [
+    -1, 0, 1, 2,    // 0:root, 1:chest, 2:neck, 3:head
+    1, 4, 5,        // 4-6: front left hip, knee, foot
+    1, 7, 8,        // 7-9: front right hip, knee, foot
+    0, 10, 11, 12,  // 10:pelvis, 11-13: back left hip, knee, foot
+    10, 14, 15,     // 14-16: back right hip, knee, foot
+    10,             // 17: tail
+  ];
+  const QUAD_BONE_LENGTHS = [
+    0, 30, 18, 14,    // root, chest, neck, head
+    6, 22, 20,        // front left leg
+    6, 22, 20,        // front right leg
+    30, 6, 24, 20,    // pelvis, back left leg
+    6, 24, 20,        // back right leg
+    22,               // tail
+  ];
+  const QUAD_HEAD_RADIUS = 10;
 
   // ================================================================
   //  STEP DATA — The 6-step narrative
@@ -197,6 +221,32 @@ const AnimSpectrumSection = (() => {
         const parentPos = positions[parent];
         const parentWorldAngle = worldAngles[parent];
         const boneLen = BONE_LENGTHS[i] * scale;
+        const worldAngle = parentWorldAngle + angles[i];
+        worldAngles[i] = worldAngle;
+        positions.push({
+          x: parentPos.x + Math.cos(worldAngle) * boneLen,
+          y: parentPos.y + Math.sin(worldAngle) * boneLen,
+        });
+      }
+    }
+    return positions;
+  }
+
+  // ================================================================
+  //  QUADRUPED FORWARD KINEMATICS
+  // ================================================================
+  function quadForwardKinematics(angles, rootX, rootY, scale, baseX, baseY) {
+    const positions = [];
+    const worldAngles = new Float64Array(QUAD_JOINT_COUNT);
+    for (let i = 0; i < QUAD_JOINT_COUNT; i++) {
+      const parent = QUAD_JOINT_PARENT[i];
+      if (parent === -1) {
+        positions.push({ x: baseX + rootX * scale, y: baseY + rootY * scale });
+        worldAngles[i] = 0;
+      } else {
+        const parentPos = positions[parent];
+        const parentWorldAngle = worldAngles[parent];
+        const boneLen = QUAD_BONE_LENGTHS[i] * scale;
         const worldAngle = parentWorldAngle + angles[i];
         worldAngles[i] = worldAngle;
         positions.push({
@@ -411,6 +461,162 @@ const AnimSpectrumSection = (() => {
   }
 
   // ================================================================
+  //  QUADRUPED POSE — all methods use quadruped skeleton
+  // ================================================================
+  function baseQuadWalk(angles, ph, stride, bodyBob, neckBob, tailWag) {
+    const sin = Math.sin;
+    angles[1] = sin(ph * 2) * bodyBob;
+    angles[2] = -0.55 + sin(ph * 2) * neckBob;
+    angles[3] = 0.38 + sin(ph * 2) * neckBob * 1.2;
+
+    angles[4] = Math.PI / 2 + 0.1;
+    angles[5] = sin(ph) * stride;
+    angles[6] = Math.max(0, -sin(ph - 0.3)) * stride * 1.1;
+
+    angles[7] = Math.PI / 2 + 0.1;
+    angles[8] = sin(ph + Math.PI) * stride;
+    angles[9] = Math.max(0, -sin(ph + Math.PI - 0.3)) * stride * 1.1;
+
+    angles[10] = Math.PI - sin(ph * 2) * bodyBob;
+
+    angles[11] = -Math.PI / 2 - 0.1;
+    angles[12] = sin(ph + Math.PI) * stride * 1.1;
+    angles[13] = Math.max(0, -sin(ph + Math.PI - 0.3)) * stride * 1.1;
+
+    angles[14] = -Math.PI / 2 - 0.1;
+    angles[15] = sin(ph) * stride * 1.1;
+    angles[16] = Math.max(0, -sin(ph - 0.3)) * stride * 1.1;
+
+    angles[17] = -0.35 + sin(ph * tailWag) * 0.25;
+  }
+
+  function computeQuadPose(stepId, t, artDir) {
+    const speed = 3.0;
+    const phase = t * speed;
+    const sin = Math.sin;
+    const angles = new Float64Array(QUAD_JOINT_COUNT);
+
+    switch (stepId) {
+      case 'ik': {
+        // Stiff, mechanical — quantized phases, no body sway
+        const quantPhase = Math.floor(phase * 4) / 4;
+        const snapPhase = quantPhase * 0.6 + phase * 0.4;
+        baseQuadWalk(angles, snapPhase, 0.35, 0.01, 0.02, 0.5);
+        angles[1] = 0;
+        angles[10] = Math.PI;
+        angles[17] = -0.3;
+        return { angles, rootX: 0, rootY: 0 };
+      }
+
+      case 'pfnn': {
+        // Smooth, fluid, slightly floaty
+        baseQuadWalk(angles, phase, 0.4, 0.04, 0.06, 1.3);
+        angles[2] += sin(phase * 1.7) * 0.03;
+        angles[3] += sin(phase * 2.3) * 0.04;
+        return { angles, rootX: sin(phase) * 1.5, rootY: -sin(phase * 2) * 3 };
+      }
+
+      case 'sl_physics_fail': {
+        collapseTimer = t % COLLAPSE_CYCLE;
+
+        if (collapseTimer < COLLAPSE_WALK_DURATION) {
+          baseQuadWalk(angles, phase, 0.4, 0.04, 0.06, 1.3);
+          const instability = Math.max(0, (collapseTimer - COLLAPSE_WALK_DURATION * 0.6)) / (COLLAPSE_WALK_DURATION * 0.4);
+          angles[1] += instability * 0.15 * sin(t * 8);
+          collapsePhase = 0;
+          return { angles, rootX: instability * 3, rootY: -sin(phase * 2) * 3 };
+        } else if (collapseTimer < COLLAPSE_WALK_DURATION + COLLAPSE_FALL_DURATION) {
+          const fallProgress = (collapseTimer - COLLAPSE_WALK_DURATION) / COLLAPSE_FALL_DURATION;
+          collapsePhase = fallProgress;
+          const eased = 1 - Math.pow(1 - fallProgress, 2);
+
+          baseQuadWalk(angles, phase, 0.4, 0.04, 0.06, 1.3);
+          angles[4] = Math.PI / 2 + eased * 0.6;
+          angles[7] = Math.PI / 2 + eased * 0.6;
+          angles[11] = -Math.PI / 2 - eased * 0.6;
+          angles[14] = -Math.PI / 2 - eased * 0.6;
+          angles[5] = eased * 0.8;
+          angles[8] = -eased * 0.6;
+          angles[12] = eased * 0.7;
+          angles[15] = -eased * 0.5;
+          angles[1] = eased * 0.4;
+          angles[10] = Math.PI + eased * 0.3;
+          angles[2] = -0.55 + eased * 0.8;
+          angles[3] = 0.38 + eased * 0.4;
+          angles[17] = -0.35 + eased * 0.5;
+          return { angles, rootX: eased * 6, rootY: eased * 45 };
+        } else {
+          collapsePhase = 1;
+          for (let i = 0; i < QUAD_JOINT_COUNT; i++) angles[i] = 0;
+          angles[1] = 0.4;
+          angles[2] = 0.3;
+          angles[3] = 0.5;
+          angles[4] = Math.PI / 2 + 0.6;
+          angles[7] = Math.PI / 2 + 0.6;
+          angles[10] = Math.PI + 0.3;
+          angles[11] = -Math.PI / 2 - 0.6;
+          angles[14] = -Math.PI / 2 - 0.6;
+          angles[5] = 0.8;
+          angles[8] = -0.6;
+          angles[12] = 0.7;
+          angles[15] = -0.5;
+          angles[17] = 0.15;
+          angles[1] += sin(t * 2) * 0.02;
+          return { angles, rootX: 6, rootY: 45 };
+        }
+      }
+
+      case 'rl_physics': {
+        baseQuadWalk(angles, phase, 0.45, 0.04, 0.06, 1.3);
+        const dt = 0.016;
+        const springK = 10, damping = 3.0, noiseAmp = 0.9;
+        for (let i = 1; i < QUAD_JOINT_COUNT; i++) {
+          const seed = sin(t * 7.3 + i * 31.7) * Math.cos(t * 3.1 + i * 17.3);
+          quadRlPerturbVel[i] += (-springK * quadRlPerturbState[i] - damping * quadRlPerturbVel[i] + seed * noiseAmp) * dt;
+          quadRlPerturbState[i] += quadRlPerturbVel[i] * dt;
+          quadRlPerturbState[i] = Math.max(-0.35, Math.min(0.35, quadRlPerturbState[i]));
+          angles[i] += quadRlPerturbState[i];
+        }
+        angles[4] += 0.1;
+        angles[7] += 0.1;
+        const stumble = sin(t * 0.7) > 0.92 ? sin(t * 15) * 0.08 : 0;
+        return { angles, rootX: sin(phase) * 2 + stumble * 6, rootY: -sin(phase * 2) * 4 + Math.abs(stumble) * 5 };
+      }
+
+      case 'deepmimic': {
+        baseQuadWalk(angles, phase, 0.42, 0.035, 0.05, 1.3);
+        const dt = 0.016, trackingSpeed = 8;
+        for (let i = 1; i < QUAD_JOINT_COUNT; i++) {
+          const variation = sin(t * 2.3 + i * 5.7) * 0.015;
+          deepMimicError[i] += (variation - deepMimicError[i]) * trackingSpeed * dt;
+          angles[i] += deepMimicError[i];
+        }
+        angles[3] += sin(phase * 2) * 0.04 + sin(phase * 3) * 0.02;
+        angles[17] = -0.3 + sin(phase * 1.1) * 0.2 + sin(phase * 2.3) * 0.08;
+        return { angles, rootX: sin(phase) * 1.2, rootY: -sin(phase * 2) * 2.5 };
+      }
+
+      case 'rl_il_proc': {
+        const stride = 0.3 + artDir * 0.3;
+        const bob = 0.02 + artDir * 0.04;
+        const nBob = 0.03 + artDir * 0.06;
+        const tailWag = 0.8 + artDir * 1.0;
+        baseQuadWalk(angles, phase, stride, bob, nBob, tailWag);
+        for (let i = 1; i < QUAD_JOINT_COUNT; i++) {
+          angles[i] += sin(t * 2.1 + i * 4.3) * 0.012;
+        }
+        angles[3] += sin(phase * 2) * (0.03 + artDir * 0.06);
+        angles[17] += sin(phase * 2.5) * artDir * 0.15;
+        return { angles, rootX: sin(phase) * (1 + artDir * 1.5), rootY: -sin(phase * 2) * (2 + artDir * 3) };
+      }
+
+      default:
+        baseQuadWalk(angles, phase, 0.4, 0.035, 0.05, 1.3);
+        return { angles, rootX: 0, rootY: 0 };
+    }
+  }
+
+  // ================================================================
   //  DRAW STICK FIGURE ON CANVAS
   // ================================================================
   function drawStickFigure(ctx, positions, scale, alpha, color, groundY) {
@@ -497,6 +703,102 @@ const AnimSpectrumSection = (() => {
     ctx.globalAlpha = alpha * 0.7;
     ctx.lineWidth = Math.max(1.5, 2 * scale);
     ctx.stroke();
+
+    ctx.restore();
+  }
+
+  // ================================================================
+  //  DRAW QUADRUPED FIGURE
+  // ================================================================
+  function drawQuadruped(ctx, positions, scale, alpha, color, groundY) {
+    const jointR = Math.max(2, 3.5 * scale);
+    const boneW = Math.max(2, 3 * scale);
+    const headR = QUAD_HEAD_RADIUS * scale;
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
+
+    const rootPos = positions[0];
+
+    // Ground shadow
+    ctx.save();
+    ctx.globalAlpha = alpha * 0.15;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.ellipse(rootPos.x, groundY + 2, 38 * scale, 4 * scale, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // Ground line
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(rootPos.x - 55 * scale, groundY);
+    ctx.lineTo(rootPos.x + 55 * scale, groundY);
+    ctx.stroke();
+
+    // Body bones (thicker)
+    ctx.strokeStyle = color;
+    ctx.globalAlpha = alpha * 0.85;
+    ctx.lineWidth = boneW * 1.4;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    const bodyBones = [[0, 1], [1, 2], [2, 3], [0, 10], [10, 17]];
+    for (const [a, b] of bodyBones) {
+      ctx.beginPath();
+      ctx.moveTo(positions[a].x, positions[a].y);
+      ctx.lineTo(positions[b].x, positions[b].y);
+      ctx.stroke();
+    }
+
+    // Leg bones
+    ctx.lineWidth = boneW;
+    const legBones = [
+      [1, 4], [4, 5], [5, 6],       // front left
+      [1, 7], [7, 8], [8, 9],       // front right
+      [10, 11], [11, 12], [12, 13], // back left
+      [10, 14], [14, 15], [15, 16], // back right
+    ];
+    for (const [a, b] of legBones) {
+      ctx.beginPath();
+      ctx.moveTo(positions[a].x, positions[a].y);
+      ctx.lineTo(positions[b].x, positions[b].y);
+      ctx.stroke();
+    }
+
+    // Joints
+    ctx.globalAlpha = alpha * 0.9;
+    ctx.fillStyle = color;
+    for (let i = 0; i < positions.length; i++) {
+      if (i === 3) continue; // head drawn separately
+      ctx.beginPath();
+      ctx.arc(positions[i].x, positions[i].y, jointR, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Head (elongated ellipse oriented along neck direction)
+    const headPos = positions[3];
+    const neckPos = positions[2];
+    const headAngle = Math.atan2(headPos.y - neckPos.y, headPos.x - neckPos.x);
+
+    ctx.save();
+    ctx.translate(headPos.x, headPos.y);
+    ctx.rotate(headAngle);
+
+    const headGrad = ctx.createRadialGradient(-headR * 0.2, 0, headR * 0.1, 0, 0, headR * 1.2);
+    headGrad.addColorStop(0, color + '55');
+    headGrad.addColorStop(1, color + '15');
+    ctx.fillStyle = headGrad;
+    ctx.globalAlpha = alpha;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, headR * 1.3, headR * 0.8, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = color;
+    ctx.globalAlpha = alpha * 0.7;
+    ctx.lineWidth = Math.max(1.5, 2 * scale);
+    ctx.stroke();
+    ctx.restore();
 
     ctx.restore();
   }
@@ -745,14 +1047,6 @@ const AnimSpectrumSection = (() => {
         display: block;
         opacity: 1;
         transform: translateY(0);
-      }
-
-      .as-step-num {
-        font-family: 'JetBrains Mono', 'SF Mono', monospace;
-        font-size: 12px;
-        font-weight: 600;
-        letter-spacing: 0.1em;
-        margin-bottom: 6px;
       }
 
       .as-step-title {
@@ -1128,7 +1422,6 @@ const AnimSpectrumSection = (() => {
         : '';
 
       el.innerHTML = `
-        <div class="as-step-num" style="color: ${s.color}">STEP ${s.num}</div>
         <h3 class="as-step-title">${s.title}</h3>
         <div class="as-step-subtitle">${s.subtitle}</div>
         <p class="as-step-desc">${s.description}</p>
@@ -1294,7 +1587,9 @@ const AnimSpectrumSection = (() => {
     // Reset physics state on step change
     rlPerturbState = new Float64Array(16);
     rlPerturbVel = new Float64Array(16);
-    deepMimicError = new Float64Array(16);
+    deepMimicError = new Float64Array(18);
+    quadRlPerturbState = new Float64Array(18);
+    quadRlPerturbVel = new Float64Array(18);
     collapseTimer = 0;
 
     // Transition: fade out old, fade in new
@@ -1524,22 +1819,19 @@ const AnimSpectrumSection = (() => {
       ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(w, gy); ctx.stroke();
     }
 
-    // Figure layout
+    // Figure layout — quadruped for all steps
     const step = STEPS[currentStep];
-    const figureScale = Math.min(w / 180, h / 360, 1.2);
-    const figureX = w / 2;
-    const figureY = h * 0.42;
-    const groundY = figureY + 80 * figureScale;
+    const qScale = Math.min(w / 200, h / 200, 1.4);
+    const qX = w / 2;
+    const qY = h * 0.38;
+    const qGroundY = qY + 52 * qScale;
 
-    // Compute pose
-    const pose = computeMethodPose(step.id, t, artDirection);
-    const positions = forwardKinematics(
-      pose.angles, pose.rootX, pose.rootY,
-      figureScale, figureX, figureY
+    const qPose = computeQuadPose(step.id, t, artDirection);
+    const qPositions = quadForwardKinematics(
+      qPose.angles, qPose.rootX, qPose.rootY,
+      qScale, qX, qY
     );
-
-    // Draw character
-    drawStickFigure(ctx, positions, figureScale, 0.92, step.color, groundY);
+    drawQuadruped(ctx, qPositions, qScale, 0.92, step.color, qGroundY);
 
     // Step label at bottom of canvas
     ctx.font = '500 10px "JetBrains Mono", "SF Mono", monospace';
