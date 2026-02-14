@@ -105,6 +105,12 @@ const HeroSection = (() => {
   let mouse = { x: 0.5, y: 0.5, active: false };
   let mouseSmooth = { x: 0.5, y: 0.5 };
 
+  // Ripple state
+  let ripples = [];
+
+  // Blur overlay
+  let blurOverlay = null;
+
   // ---------------------------------------------------------------------------
   // Configuration
   // ---------------------------------------------------------------------------
@@ -120,6 +126,9 @@ const HeroSection = (() => {
     MAX_SPEED: 3.5,
     PARTICLE_MIN_SIZE: 0.5,
     PARTICLE_MAX_SIZE: 2.8,
+    BLUR_ENABLED: true,
+    BLUR_AMOUNT: 2.3,
+    BLUR_CLEAR_RADIUS: 240,
   };
 
   // Color palette — soft blues, purples, warm whites
@@ -163,6 +172,7 @@ const HeroSection = (() => {
 
     return {
       x, y,
+      px: x, py: y,
       vx: 0, vy: 0,
       size,
       color,
@@ -228,6 +238,84 @@ const HeroSection = (() => {
   }
 
   // ---------------------------------------------------------------------------
+  // Ripple interaction — expanding wavefront that pushes particles
+  // ---------------------------------------------------------------------------
+  function createRipple(nx, ny) {
+    ripples.push({
+      x: nx * width,
+      y: ny * height,
+      radius: 0,
+      maxRadius: Math.min(width, height) * 0.65,
+      speed: Math.min(width, height) * 0.005,
+      strength: 3.5,
+      life: 1,
+      phase: Math.random() * Math.PI * 2,
+    });
+  }
+
+  function applyRippleForces(p) {
+    for (let i = 0; i < ripples.length; i++) {
+      const r = ripples[i];
+      const dx = p.x - r.x;
+      const dy = p.y - r.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      // Wavefront band — particles near the ring edge get pushed
+      const ringDist = Math.abs(dist - r.radius);
+      const bandWidth = 60 + r.radius * 0.15;
+
+      if (ringDist < bandWidth && dist > 1) {
+        const bandFalloff = 1 - ringDist / bandWidth;
+        const force = bandFalloff * bandFalloff * r.strength * r.life;
+
+        const nx = dx / dist;
+        const ny = dy / dist;
+
+        // Push outward from ripple center
+        p.vx += nx * force;
+        p.vy += ny * force;
+      }
+    }
+  }
+
+  function updateRipples() {
+    for (let i = ripples.length - 1; i >= 0; i--) {
+      const r = ripples[i];
+      r.radius += r.speed;
+      r.life = Math.max(0, 1 - r.radius / r.maxRadius);
+
+      if (r.life <= 0) {
+        ripples.splice(i, 1);
+      }
+    }
+  }
+
+  function drawRipples() {
+    for (let i = 0; i < ripples.length; i++) {
+      const r = ripples[i];
+      const alpha = r.life * 0.12;
+      if (alpha < 0.005 || r.radius < 1) continue;
+
+      // Soft wave band — radial gradient that fades in and out
+      const bandWidth = 40 + r.radius * 0.25;
+      const innerR = Math.max(0, r.radius - bandWidth);
+      const outerR = r.radius + bandWidth;
+
+      const grad = ctx.createRadialGradient(r.x, r.y, innerR, r.x, r.y, outerR);
+      grad.addColorStop(0, `rgba(160, 150, 240, 0)`);
+      grad.addColorStop(0.35, `rgba(170, 160, 255, ${alpha * 0.5})`);
+      grad.addColorStop(0.5, `rgba(180, 170, 255, ${alpha})`);
+      grad.addColorStop(0.65, `rgba(170, 160, 255, ${alpha * 0.5})`);
+      grad.addColorStop(1, `rgba(160, 150, 240, 0)`);
+
+      ctx.beginPath();
+      ctx.arc(r.x, r.y, outerR, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.fill();
+    }
+  }
+
+  // ---------------------------------------------------------------------------
   // Update & Draw
   // ---------------------------------------------------------------------------
   function update() {
@@ -248,6 +336,9 @@ const HeroSection = (() => {
       // Mouse interaction
       applyMouseInfluence(p);
 
+      // Ripple forces
+      applyRippleForces(p);
+
       // Damping
       p.vx *= CONFIG.SPEED_DAMPING;
       p.vy *= CONFIG.SPEED_DAMPING;
@@ -259,7 +350,9 @@ const HeroSection = (() => {
         p.vy = (p.vy / speed) * CONFIG.MAX_SPEED;
       }
 
-      // Move
+      // Move (save previous position for line drawing)
+      p.px = p.x;
+      p.py = p.y;
       p.x += p.vx;
       p.y += p.vy;
 
@@ -276,6 +369,9 @@ const HeroSection = (() => {
         Object.assign(p, createParticle(true));
       }
     }
+
+    // Update ripple wavefronts
+    updateRipples();
   }
 
   function draw() {
@@ -303,24 +399,30 @@ const HeroSection = (() => {
       if (alpha < 0.01) continue;
 
       const { r, g, b } = p.color;
+      const lineW = p.size * (0.8 + speed * 0.15);
 
-      // Draw the particle — a soft radial dot
-      const radius = p.size * (0.8 + speed * 0.12);
-
-      // For larger particles, add a soft glow
-      if (radius > 1.5) {
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, radius * 3, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${alpha * 0.08})`;
-        ctx.fill();
-      }
-
-      // Core dot
+      // Draw as line segment from previous to current position
+      ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
+      ctx.lineWidth = lineW;
+      ctx.lineCap = 'round';
       ctx.beginPath();
-      ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
-      ctx.fill();
+      ctx.moveTo(p.px, p.py);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+
+      // Soft glow for larger/faster particles
+      if (lineW > 1.5) {
+        ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${alpha * 0.08})`;
+        ctx.lineWidth = lineW * 4;
+        ctx.beginPath();
+        ctx.moveTo(p.px, p.py);
+        ctx.lineTo(p.x, p.y);
+        ctx.stroke();
+      }
     }
+
+    // Draw ripple rings
+    drawRipples();
   }
 
   function frame() {
@@ -351,6 +453,21 @@ const HeroSection = (() => {
         width: 100%;
         height: 100%;
         display: block;
+      }
+
+      .hero-blur-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        pointer-events: none;
+        backdrop-filter: blur(var(--hero-blur, 1.5px));
+        -webkit-backdrop-filter: blur(var(--hero-blur, 1.5px));
+        mask-image: radial-gradient(circle 0px at 50% 50%, transparent 0%, transparent 50%, black 100%);
+        -webkit-mask-image: radial-gradient(circle 0px at 50% 50%, transparent 0%, transparent 50%, black 100%);
+        transition: mask-image 0.3s ease, -webkit-mask-image 0.3s ease;
       }
 
       .hero-overlay {
@@ -454,6 +571,188 @@ const HeroSection = (() => {
         0%, 100% { transform: translateY(0); opacity: 0.55; }
         50% { transform: translateY(8px); opacity: 0.6; }
       }
+
+      /* ---- Config Panel ---- */
+      .hero-config-btn {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        z-index: 10;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(10, 10, 15, 0.5);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: border-color 0.25s, background 0.25s;
+        padding: 0;
+      }
+      .hero-config-btn:hover {
+        border-color: rgba(255, 255, 255, 0.25);
+        background: rgba(20, 20, 30, 0.7);
+      }
+      .hero-config-btn svg {
+        width: 16px;
+        height: 16px;
+        opacity: 0.45;
+        transition: opacity 0.25s;
+      }
+      .hero-config-btn:hover svg {
+        opacity: 0.7;
+      }
+
+      .hero-config-panel {
+        position: absolute;
+        top: 56px;
+        right: 16px;
+        z-index: 10;
+        width: 280px;
+        max-height: calc(100vh - 100px);
+        overflow-y: auto;
+        background: rgba(12, 12, 20, 0.85);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        padding: 16px;
+        opacity: 0;
+        transform: translateY(-8px) scale(0.97);
+        pointer-events: none;
+        transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+                    transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .hero-config-panel.open {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        pointer-events: auto;
+      }
+      .hero-config-panel::-webkit-scrollbar {
+        width: 4px;
+      }
+      .hero-config-panel::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 2px;
+      }
+
+      .hcp-title {
+        font-family: 'JetBrains Mono', 'SF Mono', monospace;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.4);
+        margin: 0 0 14px;
+      }
+
+      .hcp-group {
+        margin-bottom: 14px;
+      }
+      .hcp-group:last-child {
+        margin-bottom: 0;
+      }
+
+      .hcp-label {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 5px;
+      }
+      .hcp-label span {
+        font-family: 'JetBrains Mono', 'SF Mono', monospace;
+        font-size: 10px;
+        color: rgba(255, 255, 255, 0.5);
+        letter-spacing: 0.03em;
+      }
+      .hcp-label .hcp-val {
+        color: rgba(180, 170, 255, 0.7);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .hcp-slider {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        height: 3px;
+        border-radius: 2px;
+        background: rgba(255, 255, 255, 0.08);
+        outline: none;
+        cursor: pointer;
+      }
+      .hcp-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: rgba(180, 170, 255, 0.6);
+        border: none;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .hcp-slider::-webkit-slider-thumb:hover {
+        background: rgba(180, 170, 255, 0.85);
+      }
+      .hcp-slider::-moz-range-thumb {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: rgba(180, 170, 255, 0.6);
+        border: none;
+        cursor: pointer;
+      }
+
+      .hcp-divider {
+        height: 1px;
+        background: rgba(255, 255, 255, 0.06);
+        margin: 14px 0;
+      }
+
+      .hcp-toggle-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+      .hcp-toggle-row span {
+        font-family: 'JetBrains Mono', 'SF Mono', monospace;
+        font-size: 10px;
+        color: rgba(255, 255, 255, 0.5);
+        letter-spacing: 0.03em;
+      }
+      .hcp-toggle {
+        position: relative;
+        width: 32px;
+        height: 18px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 9px;
+        cursor: pointer;
+        transition: background 0.25s;
+        border: none;
+        padding: 0;
+      }
+      .hcp-toggle.on {
+        background: rgba(180, 170, 255, 0.35);
+      }
+      .hcp-toggle::after {
+        content: '';
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.5);
+        transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s;
+      }
+      .hcp-toggle.on::after {
+        transform: translateX(14px);
+        background: rgba(180, 170, 255, 0.9);
+      }
     `;
     document.head.appendChild(style);
     return style;
@@ -471,6 +770,12 @@ const HeroSection = (() => {
     canvas.classList.add('hero-canvas');
     parentContainer.appendChild(canvas);
     ctx = canvas.getContext('2d');
+
+    // Blur overlay (backdrop-filter with masked clear zone around cursor)
+    blurOverlay = document.createElement('div');
+    blurOverlay.classList.add('hero-blur-overlay');
+    parentContainer.appendChild(blurOverlay);
+    applyBlurSettings();
 
     // Text overlay
     const overlay = document.createElement('div');
@@ -495,6 +800,150 @@ const HeroSection = (() => {
       </div>
     `;
     parentContainer.appendChild(scrollIndicator);
+
+    // Config button + panel
+    buildConfigPanel(parentContainer);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Config Panel
+  // ---------------------------------------------------------------------------
+  function buildConfigPanel(parent) {
+    // Gear button
+    const btn = document.createElement('button');
+    btn.className = 'hero-config-btn';
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+      <circle cx="12" cy="12" r="3"/>
+    </svg>`;
+    parent.appendChild(btn);
+
+    // Panel
+    const panel = document.createElement('div');
+    panel.className = 'hero-config-panel';
+
+    const PARAMS = [
+      { key: 'PARTICLE_COUNT', label: 'Particles', min: 100, max: 3000, step: 50, decimals: 0, rebuild: true },
+      null, // divider
+      { key: 'NOISE_SCALE', label: 'Flow Scale', min: 0.0005, max: 0.008, step: 0.0001, decimals: 4 },
+      { key: 'NOISE_SPEED', label: 'Flow Speed', min: 0.00005, max: 0.002, step: 0.00005, decimals: 5 },
+      { key: 'FLOW_STRENGTH', label: 'Flow Strength', min: 0.2, max: 5, step: 0.1, decimals: 1 },
+      null,
+      { key: 'TRAIL_ALPHA', label: 'Trail Fade', min: 0.01, max: 0.2, step: 0.005, decimals: 3 },
+      { key: 'SPEED_DAMPING', label: 'Damping', min: 0.9, max: 0.999, step: 0.001, decimals: 3 },
+      { key: 'MAX_SPEED', label: 'Max Speed', min: 1, max: 15, step: 0.5, decimals: 1 },
+      null,
+      { key: 'PARTICLE_MIN_SIZE', label: 'Min Size', min: 0.1, max: 3, step: 0.1, decimals: 1 },
+      { key: 'PARTICLE_MAX_SIZE', label: 'Max Size', min: 0.5, max: 8, step: 0.1, decimals: 1 },
+      null,
+      { key: 'MOUSE_RADIUS', label: 'Cursor Radius', min: 0.05, max: 0.4, step: 0.01, decimals: 2 },
+      { key: 'MOUSE_STRENGTH', label: 'Cursor Force', min: 0.1, max: 2, step: 0.05, decimals: 2 },
+    ];
+
+    const BLUR_PARAMS = [
+      { key: 'BLUR_AMOUNT', label: 'Blur Amount', min: 0.5, max: 8, step: 0.25, decimals: 1 },
+      { key: 'BLUR_CLEAR_RADIUS', label: 'Clear Radius', min: 60, max: 500, step: 10, decimals: 0 },
+    ];
+
+    let html = '<div class="hcp-title">Particle Parameters</div>';
+    for (const p of PARAMS) {
+      if (p === null) {
+        html += '<div class="hcp-divider"></div>';
+        continue;
+      }
+      const val = CONFIG[p.key];
+      html += `
+        <div class="hcp-group">
+          <div class="hcp-label">
+            <span>${p.label}</span>
+            <span class="hcp-val" data-val="${p.key}">${val.toFixed(p.decimals)}</span>
+          </div>
+          <input type="range" class="hcp-slider" data-key="${p.key}"
+            min="${p.min}" max="${p.max}" step="${p.step}" value="${val}"
+            ${p.rebuild ? 'data-rebuild="1"' : ''} data-decimals="${p.decimals}">
+        </div>`;
+    }
+
+    // Blur section
+    html += '<div class="hcp-divider"></div>';
+    html += `<div class="hcp-toggle-row">
+      <span>Depth of Field</span>
+      <button class="hcp-toggle ${CONFIG.BLUR_ENABLED ? 'on' : ''}" data-toggle="blur"></button>
+    </div>`;
+    for (const p of BLUR_PARAMS) {
+      const val = CONFIG[p.key];
+      html += `
+        <div class="hcp-group hcp-blur-ctrl">
+          <div class="hcp-label">
+            <span>${p.label}</span>
+            <span class="hcp-val" data-val="${p.key}">${val.toFixed(p.decimals)}</span>
+          </div>
+          <input type="range" class="hcp-slider" data-key="${p.key}" data-blur="1"
+            min="${p.min}" max="${p.max}" step="${p.step}" value="${val}"
+            data-decimals="${p.decimals}">
+        </div>`;
+    }
+
+    panel.innerHTML = html;
+    parent.appendChild(panel);
+
+    // Toggle
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      panel.classList.toggle('open');
+    });
+
+    // Close when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!panel.contains(e.target) && e.target !== btn) {
+        panel.classList.remove('open');
+      }
+    });
+
+    // Wire sliders
+    panel.addEventListener('input', (e) => {
+      const slider = e.target;
+      if (!slider.dataset.key) return;
+      const key = slider.dataset.key;
+      const val = parseFloat(slider.value);
+      const decimals = parseInt(slider.dataset.decimals);
+      CONFIG[key] = val;
+
+      // Update display value
+      const valEl = panel.querySelector(`[data-val="${key}"]`);
+      if (valEl) valEl.textContent = val.toFixed(decimals);
+
+      // Rebuild particles if count changed
+      if (slider.dataset.rebuild) {
+        const target = Math.round(val);
+        while (particles.length < target) particles.push(createParticle(false));
+        while (particles.length > target) particles.pop();
+      }
+
+      // Apply blur settings live
+      if (slider.dataset.blur) {
+        applyBlurSettings();
+      }
+    });
+
+    // Wire blur toggle
+    panel.addEventListener('click', (e) => {
+      const toggle = e.target.closest('[data-toggle="blur"]');
+      if (toggle) {
+        CONFIG.BLUR_ENABLED = !CONFIG.BLUR_ENABLED;
+        toggle.classList.toggle('on', CONFIG.BLUR_ENABLED);
+        applyBlurSettings();
+        // Dim blur sliders when off
+        panel.querySelectorAll('.hcp-blur-ctrl').forEach(el => {
+          el.style.opacity = CONFIG.BLUR_ENABLED ? '1' : '0.35';
+          el.style.pointerEvents = CONFIG.BLUR_ENABLED ? '' : 'none';
+        });
+      }
+      e.stopPropagation();
+    });
+
+    // Prevent panel interactions from triggering ripples
+    btn.addEventListener('click', (e) => e.stopPropagation());
   }
 
   // ---------------------------------------------------------------------------
@@ -515,15 +964,42 @@ const HeroSection = (() => {
   // ---------------------------------------------------------------------------
   // Event handlers
   // ---------------------------------------------------------------------------
+  function applyBlurSettings() {
+    if (!blurOverlay) return;
+    if (!CONFIG.BLUR_ENABLED) {
+      blurOverlay.style.display = 'none';
+      return;
+    }
+    blurOverlay.style.display = '';
+    blurOverlay.style.setProperty('--hero-blur', CONFIG.BLUR_AMOUNT + 'px');
+  }
+
+  function updateBlurMask(px, py) {
+    if (!blurOverlay || !CONFIG.BLUR_ENABLED) return;
+    const r = CONFIG.BLUR_CLEAR_RADIUS;
+    const mask = `radial-gradient(circle ${r}px at ${px}px ${py}px, transparent 0%, transparent 40%, black 100%)`;
+    blurOverlay.style.maskImage = mask;
+    blurOverlay.style.webkitMaskImage = mask;
+  }
+
+  function clearBlurMask() {
+    if (!blurOverlay) return;
+    const mask = 'radial-gradient(circle 0px at 50% 50%, transparent 0%, transparent 50%, black 100%)';
+    blurOverlay.style.maskImage = mask;
+    blurOverlay.style.webkitMaskImage = mask;
+  }
+
   function onMouseMove(e) {
     const rect = container.getBoundingClientRect();
     mouse.x = (e.clientX - rect.left) / rect.width;
     mouse.y = (e.clientY - rect.top) / rect.height;
     mouse.active = true;
+    updateBlurMask(e.clientX - rect.left, e.clientY - rect.top);
   }
 
   function onMouseLeave() {
     mouse.active = false;
+    clearBlurMask();
   }
 
   function onTouchMove(e) {
@@ -532,11 +1008,30 @@ const HeroSection = (() => {
       mouse.x = (e.touches[0].clientX - rect.left) / rect.width;
       mouse.y = (e.touches[0].clientY - rect.top) / rect.height;
       mouse.active = true;
+      updateBlurMask(e.touches[0].clientX - rect.left, e.touches[0].clientY - rect.top);
     }
   }
 
   function onTouchEnd() {
     mouse.active = false;
+    clearBlurMask();
+  }
+
+  function onClick(e) {
+    if (e.target.closest('.hero-config-btn, .hero-config-panel')) return;
+    const rect = container.getBoundingClientRect();
+    const nx = (e.clientX - rect.left) / rect.width;
+    const ny = (e.clientY - rect.top) / rect.height;
+    createRipple(nx, ny);
+  }
+
+  function onTouchStart(e) {
+    if (e.touches.length > 0) {
+      const rect = container.getBoundingClientRect();
+      const nx = (e.touches[0].clientX - rect.left) / rect.width;
+      const ny = (e.touches[0].clientY - rect.top) / rect.height;
+      createRipple(nx, ny);
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -564,7 +1059,9 @@ const HeroSection = (() => {
       // Bind events
       container.addEventListener('mousemove', onMouseMove);
       container.addEventListener('mouseleave', onMouseLeave);
+      container.addEventListener('click', onClick);
       container.addEventListener('touchmove', onTouchMove, { passive: true });
+      container.addEventListener('touchstart', onTouchStart, { passive: true });
       container.addEventListener('touchend', onTouchEnd);
     },
 
